@@ -5,21 +5,36 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const { autenticar, JWT_SECRET } = require('../middleware/auth');
+const cloudinary = require('../config/cloudinary');
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 const SALT_ROUNDS = 10;
 
-// ROTA: Cadastro com hash de senha e validação
-router.post('/cadastro', [
-    body('nome').trim().notEmpty().withMessage('Nome é obrigatório.'),
-    body('email').isEmail().withMessage('E-mail inválido.'),
-    body('senha').isLength({ min: 6 }).withMessage('Senha deve ter no mínimo 6 caracteres.')
-], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ sucesso: false, mensagem: errors.array()[0].msg });
-    }
+const storageUsuarios = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'usuarios_prontolook',
+        allowed_formats: ['jpg', 'png', 'jpeg'],
+        transformation: [{ width: 300, height: 300, crop: 'fill' }],
+    },
+});
 
+const uploadFoto = multer({ storage: storageUsuarios });
+
+// ROTA: Cadastro com hash de senha, validação e foto opcional
+router.post('/cadastro', uploadFoto.single('imagem'), async (req, res) => {
     const { nome, email, senha } = req.body;
+
+    if (!nome || !nome.trim()) {
+        return res.status(400).json({ sucesso: false, mensagem: "Nome é obrigatório." });
+    }
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+        return res.status(400).json({ sucesso: false, mensagem: "E-mail inválido." });
+    }
+    if (!senha || senha.length < 6) {
+        return res.status(400).json({ sucesso: false, mensagem: "Senha deve ter no mínimo 6 caracteres." });
+    }
 
     try {
         const emailLower = email.trim().toLowerCase();
@@ -29,12 +44,25 @@ router.post('/cadastro', [
         }
 
         const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
-        await pool.query(
-            'INSERT INTO usuarios (nome, email, senha) VALUES ($1, $2, $3)',
-            [nome.trim(), emailLower, senhaHash]
-        );
+        const fotoUrl = req.file ? req.file.path : null;
 
-        res.status(201).json({ sucesso: true, mensagem: "Usuário criado com sucesso!" });
+        try {
+            await pool.query(
+                'INSERT INTO usuarios (nome, email, senha, foto_url) VALUES ($1, $2, $3, $4)',
+                [nome.trim(), emailLower, senhaHash, fotoUrl]
+            );
+        } catch (dbErr) {
+            if (dbErr.message && dbErr.message.includes('foto_url')) {
+                await pool.query(
+                    'INSERT INTO usuarios (nome, email, senha) VALUES ($1, $2, $3)',
+                    [nome.trim(), emailLower, senhaHash]
+                );
+            } else {
+                throw dbErr;
+            }
+        }
+
+        res.status(201).json({ sucesso: true, mensagem: "Conta criada com sucesso!" });
     } catch (err) {
         console.error('Erro no cadastro:', err.message);
         res.status(500).json({ sucesso: false, mensagem: "Erro no servidor." });
@@ -55,7 +83,7 @@ router.post('/login', [
 
     try {
         const result = await pool.query(
-            'SELECT id, nome, email, senha, role FROM usuarios WHERE LOWER(email) = $1',
+            'SELECT id, nome, email, senha, role, foto_url FROM usuarios WHERE LOWER(email) = $1',
             [email.trim().toLowerCase()]
         );
 
@@ -82,7 +110,8 @@ router.post('/login', [
             usuario: {
                 id: usuario.id,
                 nome: usuario.nome,
-                role: usuario.role || 'user'
+                role: usuario.role || 'user',
+                foto_url: usuario.foto_url || null
             }
         });
     } catch (err) {

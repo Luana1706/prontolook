@@ -68,6 +68,46 @@ router.get('/', autenticar, async (req, res) => {
     }
 });
 
+// ROTA: Atualizar quantidade no carrinho (requer autenticação)
+router.put('/atualizar/:id', autenticar, async (req, res) => {
+    const { quantidade } = req.body;
+
+    try {
+        const item = await pool.query(
+            'SELECT c.usuario_id, c.produto_id FROM carrinho c WHERE c.id = $1',
+            [req.params.id]
+        );
+
+        if (item.rows.length === 0) {
+            return res.status(404).json({ sucesso: false, mensagem: "Item não encontrado." });
+        }
+
+        if (item.rows[0].usuario_id !== req.usuario.id) {
+            return res.status(403).json({ sucesso: false, mensagem: "Não autorizado." });
+        }
+
+        const produto = await pool.query('SELECT estoque, nome FROM produtos WHERE id = $1', [item.rows[0].produto_id]);
+
+        if (quantidade > produto.rows[0].estoque) {
+            return res.status(400).json({
+                sucesso: false,
+                mensagem: `Estoque insuficiente. Temos apenas ${produto.rows[0].estoque} unidade(s) de "${produto.rows[0].nome}".`
+            });
+        }
+
+        if (quantidade <= 0) {
+            await pool.query('DELETE FROM carrinho WHERE id = $1', [req.params.id]);
+            return res.json({ sucesso: true, mensagem: "Item removido." });
+        }
+
+        await pool.query('UPDATE carrinho SET quantidade = $1 WHERE id = $2', [quantidade, req.params.id]);
+        res.json({ sucesso: true, mensagem: "Quantidade atualizada." });
+    } catch (err) {
+        console.error('Erro ao atualizar carrinho:', err.message);
+        res.status(500).json({ sucesso: false, mensagem: "Erro ao atualizar." });
+    }
+});
+
 // ROTA: Remover item do carrinho (requer autenticação, valida que é do próprio usuário)
 router.delete('/remover/:id', autenticar, async (req, res) => {
     try {

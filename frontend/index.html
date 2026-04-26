@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pronto Look | Loja Online</title>
+    <title>Pronto Look | Moda Feminina</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="promo-bar">
+        <i class="fas fa-truck"></i> Frete grátis acima de R$ 299 <i class="fas fa-star"></i> Parcele em até 6x sem juros <i class="fas fa-shield-halved"></i> Compra segura
+    </div>
+
     <header class="main-header">
         <div class="header-container">
             <div class="logo">
@@ -19,7 +22,7 @@
             </div>
 
             <div class="search-bar">
-                <input type="text" id="campo-busca" placeholder="O que você está procurando?">
+                <input type="text" id="campo-busca" placeholder="Buscar vestidos, blusas, acessórios...">
                 <button><i class="fas fa-search"></i></button>
             </div>
 
@@ -27,11 +30,12 @@
                 <div id="login-links" class="user-auth">
                     <i class="far fa-user-circle"></i>
                     <a href="login.html" id="link-entrar">Entrar</a>
-                    <span>ou</span>
-                    <a href="cadastro.html" id="link-cadastro">Cadastre-se</a>
+                    <span>|</span>
+                    <a href="cadastro.html" id="link-cadastro">Criar Conta</a>
                 </div>
 
                 <div id="user-logged" class="user-logged-hidden">
+                    <img id="user-foto-header" class="user-foto-mini" src="" alt="" style="display:none;">
                     <span id="boas-vindas"></span>
                     <button onclick="sair()" class="btn-sair-mini">Sair</button>
                 </div>
@@ -46,7 +50,8 @@
         <nav class="main-nav">
             <a href="index.html">Início</a>
             <a href="#titulo-pagina">Produtos</a>
-            <a href="#">Coleções</a>
+            <a href="#">Novidades</a>
+            <a href="#footer-section">Contato</a>
         </nav>
     </header>
 
@@ -87,30 +92,41 @@
         </nav>
 
         <h2 id="titulo-pagina" class="titulo-secao">Nossas Peças</h2>
+        <p class="subtitulo-secao">Selecionadas especialmente para você</p>
 
         <div id="lista-produtos" class="vitrine"></div>
     </main>
 
-    <footer class="site-footer">
+    <div id="toast-container" class="toast-container"></div>
+
+    <footer id="footer-section" class="site-footer">
         <div class="footer-container">
             <div class="footer-col">
                 <h4 class="footer-logo">Pronto <span class="logo-destaque">Look</span></h4>
-                <p>Moda feminina com estilo e qualidade. Vista-se com confiança.</p>
+                <p>Moda feminina com estilo, qualidade e elegância. Vista-se com confiança para todas as ocasiões.</p>
+                <div class="footer-social">
+                    <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+                    <a href="#" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" title="Pinterest"><i class="fab fa-pinterest-p"></i></a>
+                    <a href="#" title="TikTok"><i class="fab fa-tiktok"></i></a>
+                </div>
             </div>
             <div class="footer-col">
-                <h4>Links Úteis</h4>
+                <h4>Navegação</h4>
                 <a href="index.html">Início</a>
                 <a href="#titulo-pagina">Produtos</a>
                 <a href="carrinho.html">Carrinho</a>
+                <a href="login.html">Minha Conta</a>
             </div>
             <div class="footer-col">
                 <h4>Atendimento</h4>
                 <p><i class="fab fa-whatsapp"></i> (51) 99999-9999</p>
                 <p><i class="fas fa-envelope"></i> contato@prontolook.com.br</p>
+                <p><i class="fas fa-clock"></i> Seg-Sex: 9h às 18h</p>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2025 Pronto Look. Todos os direitos reservados.</p>
+            <p>&copy; 2025 Pronto Look &mdash; Todos os direitos reservados.</p>
         </div>
     </footer>
 
@@ -124,9 +140,9 @@
     <script>
         var swiper = new Swiper(".mySwiper", {
             slidesPerView: 3,
-            spaceBetween: 25,
+            spaceBetween: 20,
             loop: true,
-            autoplay: { delay: 4000, disableOnInteraction: false },
+            autoplay: { delay: 4500, disableOnInteraction: false },
             pagination: { el: ".swiper-pagination", clickable: true },
             navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
             breakpoints: {

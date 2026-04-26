@@ -3,51 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro - Pronto Look</title>
+    <title>Criar Conta | Pronto Look</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
     <div class="cadastro-wrapper">
         <div class="container-cadastro">
             <header class="header-form">
-                <h2 class="logo-texto">Pronto <span class="logo-destaque">Look</span></h2>
+                <a href="index.html" class="logo-link">
+                    <h2 class="logo-texto">Pronto <span class="logo-destaque">Look</span></h2>
+                </a>
                 <h3>Criar Conta</h3>
                 <p>Junte-se à nossa comunidade de estilo.</p>
             </header>
 
             <form id="formCadastro" enctype="multipart/form-data">
+                <div class="input-group" style="text-align: center;">
+                    <label style="text-align: center;">Sua Foto (Opcional)</label>
+                    <div class="foto-upload-area" onclick="document.getElementById('foto').click()">
+                        <img id="foto-preview" class="foto-preview" src="" alt="Preview">
+                        <i id="foto-icon" class="fas fa-camera"></i>
+                        <span id="foto-texto">Clique para adicionar uma foto</span>
+                        <span class="foto-hint">JPG, PNG — máx. 5MB</span>
+                    </div>
+                    <input type="file" id="foto" name="imagem" accept="image/*" hidden>
+                </div>
+
                 <div class="input-group">
                     <label for="nome">Nome Completo</label>
-                    <input type="text" id="nome" name="nome" placeholder="Ex: Luana Silva" required>
+                    <input type="text" id="nome" name="nome" placeholder="Ex: Maria Silva" required>
                 </div>
 
                 <div class="input-group">
                     <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" placeholder="exemplo@email.com" required>
+                    <input type="email" id="email" name="email" placeholder="seu@email.com" required>
                 </div>
 
                 <div class="input-group">
                     <label for="senha">Senha</label>
-                    <input type="password" id="senha" name="senha" placeholder="••••••••" required>
+                    <input type="password" id="senha" name="senha" placeholder="Mínimo 6 caracteres" required>
                 </div>
 
-                <div class="input-group">
-                    <label for="foto" class="label-file">Sua Foto (Opcional)</label>
-                    <input type="file" id="foto" name="imagem" accept="image/*">
-                </div>
-
-                <button type="submit" class="btn-cadastrar">CADASTRAR</button>
+                <button type="submit" class="btn-cadastrar">CRIAR MINHA CONTA</button>
             </form>
 
             <p id="mensagem"></p>
             
             <footer class="footer-form">
-                <p>Já tem uma conta? <a href="login.html" class="link-login">Fazer login</a></p>
+                <p>Já tem uma conta? <a href="login.html">Fazer login</a></p>
             </footer>
         </div>
     </div>
 
     <script src="script.js"></script>
+    <script>
+        const fotoInput = document.getElementById('foto');
+        const fotoPreview = document.getElementById('foto-preview');
+        const fotoIcon = document.getElementById('foto-icon');
+        const fotoTexto = document.getElementById('foto-texto');
+
+        if (fotoInput) {
+            fotoInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => {
+                        fotoPreview.src = ev.target.result;
+                        fotoPreview.style.display = 'block';
+                        fotoIcon.style.display = 'none';
+                        fotoTexto.innerText = file.name;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    </script>
 </body>
 </html>

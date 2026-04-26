@@ -5,71 +5,106 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Admin | Pronto Look</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body class="admin-body">
     <div class="admin-container">
-        <header class="admin-header">
-            <h2>Gestão de Inventário</h2>
-            <p>Cadastre novas peças na sua vitrine</p>
-            <a href="index.html" class="admin-voltar"><i class="fas fa-arrow-left"></i> Voltar à Loja</a>
-        </header>
+        <div class="admin-card">
+            <header class="admin-header">
+                <h2>Painel Administrativo</h2>
+                <p>Gerencie sua vitrine e estoque</p>
+                <a href="index.html" class="admin-voltar"><i class="fas fa-arrow-left"></i> Voltar à Loja</a>
+            </header>
 
-        <form id="formProduto" class="form-admin">
-            <div class="input-group">
-                <label>Nome do Produto</label>
-                <input type="text" id="admin-nome" placeholder="Ex: Vestido Floral Midi" required>
-            </div>
-            <div class="admin-grid-2">
-                <div class="input-group">
-                    <label>Preço (R$)</label>
-                    <input type="number" step="0.01" id="admin-preco" placeholder="0.00" required>
+            <div class="admin-stats" id="admin-stats">
+                <div class="stat-card">
+                    <i class="fas fa-box-open"></i>
+                    <h4>Produtos</h4>
+                    <span id="stat-produtos">—</span>
                 </div>
-                <div class="input-group">
-                    <label>Categoria</label>
-                    <select id="admin-categoria" class="admin-select">
-                        <option value="vestidos">Vestidos</option>
-                        <option value="blusas">Blusas</option>
-                        <option value="conjuntos">Conjuntos</option>
-                        <option value="acessorios">Acessórios</option>
-                    </select>
+                <div class="stat-card">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h4>Estoque Baixo</h4>
+                    <span id="stat-baixo">—</span>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-times-circle"></i>
+                    <h4>Esgotados</h4>
+                    <span id="stat-esgotados">—</span>
                 </div>
             </div>
-            <div class="input-group">
-                <label>Descrição Curta</label>
-                <textarea id="admin-descricao" class="admin-textarea"></textarea>
-            </div>
-            <div class="input-group">
-                <label>Quantidade em Estoque</label>
-                <input type="number" id="admin-estoque" placeholder="Ex: 10" required>
-            </div>
-            <div class="input-group">
-                <label>Imagem do Produto</label>
-                <input type="file" id="admin-imagem" accept="image/*">
-                <p class="admin-hint">A imagem será salva no Cloudinary automaticamente.</p>
-            </div>
-            <button type="submit" class="btn-cadastrar">CADASTRAR PRODUTO</button>
-        </form>
-        <div id="admin-msg" class="admin-mensagem"></div>
+
+            <form id="formProduto" class="form-admin">
+                <div class="input-group">
+                    <label>Nome do Produto</label>
+                    <input type="text" id="admin-nome" placeholder="Ex: Vestido Floral Midi" required>
+                </div>
+                <div class="admin-grid-2">
+                    <div class="input-group">
+                        <label>Preço (R$)</label>
+                        <input type="number" step="0.01" id="admin-preco" placeholder="0.00" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Categoria</label>
+                        <select id="admin-categoria" class="admin-select">
+                            <option value="vestidos">Vestidos</option>
+                            <option value="blusas">Blusas</option>
+                            <option value="conjuntos">Conjuntos</option>
+                            <option value="acessorios">Acessórios</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Descrição</label>
+                    <textarea id="admin-descricao" class="admin-textarea" placeholder="Descreva o produto..."></textarea>
+                </div>
+                <div class="admin-grid-2">
+                    <div class="input-group">
+                        <label>Estoque</label>
+                        <input type="number" id="admin-estoque" placeholder="Quantidade" required min="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Imagem do Produto</label>
+                        <input type="file" id="admin-imagem" accept="image/*">
+                        <p class="admin-hint">JPG, PNG — Upload automático via Cloudinary</p>
+                    </div>
+                </div>
+                <button type="submit" class="btn-cadastrar btn-rosa">
+                    <i class="fas fa-plus"></i> &nbsp; CADASTRAR PRODUTO
+                </button>
+            </form>
+            <div id="admin-msg" class="admin-mensagem"></div>
+        </div>
     </div>
 
     <script>
-        // Verificação de Segurança (frontend + token)
         const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
         const token = localStorage.getItem('token');
 
         if (!usuarioLogado || !token || usuarioLogado.role !== 'admin') {
-            alert("Acesso negado. Apenas administradores.");
-            window.location.href = "login.html";
+            window.location.href = "admin_login.html";
         }
 
         const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
 
+        // Load stats
+        async function carregarStats() {
+            try {
+                const res = await fetch(`${API_URL}/produtos`);
+                const produtos = await res.json();
+                document.getElementById('stat-produtos').textContent = produtos.length;
+                document.getElementById('stat-baixo').textContent = produtos.filter(p => p.estoque > 0 && p.estoque <= 5).length;
+                document.getElementById('stat-esgotados').textContent = produtos.filter(p => p.estoque <= 0).length;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        carregarStats();
+
         document.getElementById('formProduto').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
-            btn.innerText = "CADASTRANDO...";
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> &nbsp; CADASTRANDO...';
             btn.disabled = true;
 
             const formData = new FormData();
@@ -94,18 +129,20 @@
 
                 if (res.ok) {
                     msgEl.innerText = "Produto cadastrado com sucesso!";
-                    msgEl.style.color = "green";
+                    msgEl.style.color = "#27ae60";
                     e.target.reset();
+                    carregarStats();
                 } else {
                     msgEl.innerText = data.mensagem || "Erro ao cadastrar.";
-                    msgEl.style.color = "red";
+                    msgEl.style.color = "#e74c3c";
                 }
             } catch (err) {
                 console.error(err);
-                document.getElementById('admin-msg').innerText = "Erro ao cadastrar.";
-                document.getElementById('admin-msg').style.color = "red";
+                const msgEl = document.getElementById('admin-msg');
+                msgEl.innerText = "Erro ao cadastrar.";
+                msgEl.style.color = "#e74c3c";
             } finally {
-                btn.innerText = "CADASTRAR PRODUTO";
+                btn.innerHTML = '<i class="fas fa-plus"></i> &nbsp; CADASTRAR PRODUTO';
                 btn.disabled = false;
             }
         });
