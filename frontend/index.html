@@ -13,7 +13,7 @@
     <header class="main-header">
         <div class="header-container">
             <div class="logo">
-                <a href="index.html" style="text-decoration: none;">
+                <a href="index.html" class="logo-link">
                     <span class="logo-texto">Pronto <span class="logo-destaque">Look</span></span>
                 </a>
             </div>
@@ -26,16 +26,16 @@
             <div class="user-menu">
                 <div id="login-links" class="user-auth">
                     <i class="far fa-user-circle"></i>
-                    <a href="login.html" id="link-entrar">Entrar</a> 
-                    <span>ou</span> 
+                    <a href="login.html" id="link-entrar">Entrar</a>
+                    <span>ou</span>
                     <a href="cadastro.html" id="link-cadastro">Cadastre-se</a>
                 </div>
-                
-                <div id="user-logged" style="display: none;">
+
+                <div id="user-logged" class="user-logged-hidden">
                     <span id="boas-vindas"></span>
                     <button onclick="sair()" class="btn-sair-mini">Sair</button>
                 </div>
-                
+
                 <a href="carrinho.html" id="link-carrinho" class="cart-icon">
                     <i class="fas fa-shopping-bag"></i>
                     <span class="cart-count">0</span>
@@ -86,19 +86,41 @@
             </div>
         </nav>
 
-        <h2 id="titulo-pagina" style="margin: 40px 0 20px; text-align: center; font-family: 'Georgia', serif; color: #333; letter-spacing: 1px;">Nossas Peças</h2>
-        
-        <div id="lista-produtos" class="vitrine">
-            </div>
+        <h2 id="titulo-pagina" class="titulo-secao">Nossas Peças</h2>
+
+        <div id="lista-produtos" class="vitrine"></div>
     </main>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-col">
+                <h4 class="footer-logo">Pronto <span class="logo-destaque">Look</span></h4>
+                <p>Moda feminina com estilo e qualidade. Vista-se com confiança.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Links Úteis</h4>
+                <a href="index.html">Início</a>
+                <a href="#titulo-pagina">Produtos</a>
+                <a href="carrinho.html">Carrinho</a>
+            </div>
+            <div class="footer-col">
+                <h4>Atendimento</h4>
+                <p><i class="fab fa-whatsapp"></i> (51) 99999-9999</p>
+                <p><i class="fas fa-envelope"></i> contato@prontolook.com.br</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Pronto Look. Todos os direitos reservados.</p>
+        </div>
+    </footer>
 
     <a href="https://wa.me/5551999999999" class="whatsapp-float" target="_blank" title="Fale Conosco">
         <i class="fab fa-whatsapp"></i>
     </a>
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="script.js"></script> 
-    
+    <script src="script.js"></script>
+
     <script>
         var swiper = new Swiper(".mySwiper", {
             slidesPerView: 3,
