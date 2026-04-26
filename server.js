@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 const path = require('path');
 
@@ -11,27 +13,54 @@ const carrinhoRoutes = require('./server/routes/carrinho');
 
 const app = express();
 
-// Middlewares
-app.use(cors());
+// Segurança: Headers HTTP
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+}));
+
+// CORS configurado (ajustar origens para produção)
+const allowedOrigins = [
+    'http://localhost:3000',
+    process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+    origin: allowedOrigins.length > 0 ? allowedOrigins : true,
+    credentials: true,
+}));
+
+// Rate limiting para rotas de autenticação
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    message: { sucesso: false, mensagem: "Muitas tentativas. Tente novamente em 15 minutos." },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 app.use(express.json());
 
-// 1. Configuração de Arquivos Estáticos (Frontend)
-// O path.resolve garante que a Vercel encontre a pasta independente de onde o script rode
+// Configuração de Arquivos Estáticos (Frontend)
 const frontendPath = path.resolve(__dirname, 'frontend');
 app.use(express.static(frontendPath));
 
-// 2. Rotas da API
+// Rate limiting nas rotas de autenticação
+app.use('/usuarios/login', authLimiter);
+app.use('/usuarios/cadastro', authLimiter);
+app.use('/usuarios/recuperar-senha', authLimiter);
+
+// Rotas da API
 app.use('/usuarios', usuariosRoutes);
 app.use('/produtos', produtosRoutes);
 app.use('/carrinho', carrinhoRoutes);
 
-// 3. Rota Principal (Home)
+// Rota Principal (Home)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
+    res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-// 4. Fallback para Single Page Application (SPA)
-// Se o usuário atualizar a página em uma rota que não existe, ele volta pro index
+// Fallback para SPA
 app.get('*', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
@@ -39,7 +68,7 @@ app.get('*', (req, res) => {
 // Porta para Local e Vercel
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Servidor rodando na porta ${PORT}`);
 });
 
-module.exports = app; // Importante para a Vercel
+module.exports = app;
