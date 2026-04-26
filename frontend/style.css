@@ -932,7 +932,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--gradiente-hero);
+    background: linear-gradient(160deg, #1a1a2e 0%, #2d1f3d 30%, #3d2248 60%, #1a1a2e 100%);
     padding: 40px 20px;
     position: relative;
 }
@@ -944,7 +944,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L60 30L30 60L0 30Z' fill='none' stroke='%23c2698b' stroke-opacity='0.03' stroke-width='1'/%3E%3C/svg%3E");
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0L60 30L30 60L0 30Z' fill='none' stroke='%23c2698b' stroke-opacity='0.06' stroke-width='1'/%3E%3C/svg%3E");
     pointer-events: none;
 }
 
@@ -952,13 +952,13 @@ body {
     background: var(--branco);
     padding: 55px 45px;
     border-radius: var(--border-radius-lg);
-    box-shadow: var(--sombra-premium);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
     width: 100%;
-    max-width: 460px;
+    max-width: 480px;
     text-align: center;
     position: relative;
     z-index: 1;
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header-form {
@@ -975,13 +975,13 @@ body {
     font-size: 26px;
     font-weight: 600;
     color: var(--preto-suave);
-    margin: 18px 0 8px;
+    margin: 18px 0 10px;
 }
 
 .header-form p {
-    color: #aaa;
+    color: #777;
     font-size: 14px;
-    font-weight: 300;
+    font-weight: 400;
 }
 
 .input-group {
@@ -991,26 +991,26 @@ body {
 
 .input-group label {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    color: #999;
+    color: #555;
     margin-bottom: 8px;
     margin-left: 4px;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.2px;
 }
 
 .input-group input,
 .input-group select {
     width: 100%;
-    padding: 15px 20px;
-    border: 1.5px solid #f0f0f0;
+    padding: 16px 20px;
+    border: 1.5px solid #ddd;
     border-radius: 14px;
     outline: none;
-    background: #fafafa;
+    background: #f9f9fb;
     transition: var(--transition);
     font-family: 'Montserrat', sans-serif;
-    font-size: 14px;
+    font-size: 15px;
     color: var(--preto-suave);
 }
 
@@ -1022,8 +1022,8 @@ body {
 }
 
 .input-group input::placeholder {
-    color: #ccc;
-    font-weight: 300;
+    color: #999;
+    font-weight: 400;
 }
 
 .foto-upload-area {
@@ -1032,11 +1032,11 @@ body {
     align-items: center;
     gap: 12px;
     padding: 25px;
-    border: 2px dashed #e0e0e0;
+    border: 2px dashed #ccc;
     border-radius: var(--border-radius);
     cursor: pointer;
     transition: var(--transition);
-    background: #fafafa;
+    background: #f9f9fb;
 }
 
 .foto-upload-area:hover {
@@ -1046,7 +1046,7 @@ body {
 
 .foto-upload-area i {
     font-size: 28px;
-    color: #ccc;
+    color: #999;
     transition: var(--transition);
 }
 
@@ -1056,13 +1056,13 @@ body {
 
 .foto-upload-area span {
     font-size: 13px;
-    color: #aaa;
-    font-weight: 400;
+    color: #666;
+    font-weight: 500;
 }
 
 .foto-upload-area .foto-hint {
     font-size: 11px;
-    color: #ccc;
+    color: #999;
 }
 
 .foto-preview {
@@ -1076,16 +1076,16 @@ body {
 
 .label-file {
     cursor: pointer;
-    background: #fafafa;
+    background: #f9f9fb;
     padding: 14px;
     border-radius: var(--border-radius);
-    border: 2px dashed #e0e0e0;
+    border: 2px dashed #ccc;
     text-align: center;
     transition: var(--transition);
     display: block !important;
     text-transform: none !important;
     font-size: 13px;
-    color: #999;
+    color: #666;
 }
 
 .label-file:hover {
@@ -1097,25 +1097,26 @@ body {
 /* Shared Button */
 .btn-cadastrar {
     width: 100%;
-    padding: 16px;
+    padding: 17px;
     border: none;
     border-radius: 14px;
-    background: var(--preto-suave);
+    background: var(--gradiente-rosa);
     color: white;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 14px;
     cursor: pointer;
     transition: var(--transition);
-    margin-top: 10px;
+    margin-top: 14px;
     letter-spacing: 2px;
     text-transform: uppercase;
     font-family: 'Montserrat', sans-serif;
+    box-shadow: 0 4px 16px rgba(194, 105, 139, 0.25);
 }
 
 .btn-cadastrar:hover {
-    background: var(--rosa-principal);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(194, 105, 139, 0.3);
+    box-shadow: 0 8px 28px rgba(194, 105, 139, 0.45);
+    filter: brightness(1.05);
 }
 
 .btn-cadastrar:active {
@@ -1140,7 +1141,7 @@ body {
 
 .link-esqueci {
     font-size: 13px;
-    color: #aaa;
+    color: #888;
     text-decoration: none;
     transition: var(--transition);
 }
@@ -1153,10 +1154,11 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
-    color: #ddd;
+    color: #999;
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 2px;
+    margin: 5px 0;
 }
 
 .divisor-ou::before,
@@ -1164,16 +1166,16 @@ body {
     content: '';
     flex: 1;
     height: 1px;
-    background: #eee;
+    background: #ddd;
 }
 
 .btn-admin-login {
     background: transparent;
-    border: 1.5px solid #e0e0e0;
-    padding: 13px;
+    border: 1.5px solid #ccc;
+    padding: 14px;
     border-radius: 14px;
     font-size: 12px;
-    color: var(--cinza-texto);
+    color: #555;
     cursor: pointer;
     font-weight: 600;
     transition: var(--transition);
@@ -1198,12 +1200,12 @@ body {
 .footer-form {
     margin-top: 35px;
     padding-top: 25px;
-    border-top: 1px solid #f5f5f5;
+    border-top: 1px solid #eee;
 }
 
 .footer-form p {
     font-size: 14px;
-    color: #aaa;
+    color: #777;
 }
 
 .footer-form a {
@@ -1588,23 +1590,31 @@ body {
 
 /* Admin login page */
 .admin-login-container {
-    max-width: 420px;
+    max-width: 440px;
 }
 
 .admin-login-icon {
-    width: 70px;
-    height: 70px;
-    background: var(--rosa-claro);
+    width: 76px;
+    height: 76px;
+    background: var(--gradiente-rosa);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 20px;
+    box-shadow: 0 8px 24px rgba(194, 105, 139, 0.3);
 }
 
 .admin-login-icon i {
-    font-size: 28px;
-    color: var(--rosa-principal);
+    font-size: 30px;
+    color: white;
+}
+
+.admin-mensagem {
+    margin-top: 18px;
+    font-size: 14px;
+    font-weight: 500;
+    min-height: 20px;
 }
 
 /* ============================================
