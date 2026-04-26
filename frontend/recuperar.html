@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Senha - Pronto Look</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="cadastro-wrapper">
+        <div class="container-cadastro">
+            <header class="header-form">
+                <h2 class="logo-texto">Pronto <span class="logo-destaque">Look</span></h2>
+                <h3>Redefinir Senha</h3>
+                <p>Insira seu e-mail e escolha uma nova senha.</p>
+            </header>
+
+            <form id="formRecuperar">
+                <div class="input-group">
+                    <label for="email">E-mail Cadastrado</label>
+                    <input type="email" id="emailRecuperar" placeholder="exemplo@email.com" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="novaSenha">Nova Senha</label>
+                    <input type="password" id="novaSenha" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn-cadastrar">ATUALIZAR SENHA</button>
+            </form>
+
+            <p id="mensagemRecuperar" style="margin-top: 15px; font-size: 14px;"></p>
+            
+            <footer class="footer-form">
+                <p>Lembrou a senha? <a href="login.html">Fazer login</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Lógica específica para esta página
+        const form = document.getElementById('formRecuperar');
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = document.getElementById('emailRecuperar').value;
+                const novaSenha = document.getElementById('novaSenha').value;
+                const msg = document.getElementById('mensagemRecuperar');
+
+                try {
+                    // Usamos a mesma URL dinâmica do script.js
+                    const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+                    
+                    const res = await fetch(`${API_URL}/usuarios/recuperar-senha`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, novaSenha })
+                    });
+
+                    const data = await res.json();
+                    msg.innerText = data.mensagem;
+                    msg.style.color = res.ok ? "green" : "red";
+
+                    if (res.ok) {
+                        setTimeout(() => { window.location.href = "login.html"; }, 3000);
+                    }
+                } catch (err) {
+                    msg.innerText = "Erro ao conectar ao servidor.";
+                    msg.style.color = "red";
+                }
+            });
+        }
+    </script>
+</body>
+</html>

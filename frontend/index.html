@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pronto Look | Loja Online</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <a href="index.html" style="text-decoration: none;">
+                    <span class="logo-texto">Pronto <span class="logo-destaque">Look</span></span>
+                </a>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" id="campo-busca" placeholder="O que você está procurando?">
+                <button><i class="fas fa-search"></i></button>
+            </div>
+
+            <div class="user-menu">
+                <div id="login-links" class="user-auth">
+                    <i class="far fa-user-circle"></i>
+                    <a href="login.html" id="link-entrar">Entrar</a> 
+                    <span>ou</span> 
+                    <a href="cadastro.html" id="link-cadastro">Cadastre-se</a>
+                </div>
+                
+                <div id="user-logged" style="display: none;">
+                    <span id="boas-vindas"></span>
+                    <button onclick="sair()" class="btn-sair-mini">Sair</button>
+                </div>
+                
+                <a href="carrinho.html" id="link-carrinho" class="cart-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-count">0</span>
+                </a>
+            </div>
+        </div>
+
+        <nav class="main-nav">
+            <a href="index.html">Início</a>
+            <a href="#titulo-pagina">Produtos</a>
+            <a href="#">Coleções</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero-slider">
+            <div class="swiper mySwiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide">
+                        <div class="banner-card">
+                            <img src="assets/vestido amarelo.png" alt="Vestidos Leves">
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="banner-card">
+                            <img src="assets/vestido rosa.png" alt="Vestido Floral">
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="banner-card">
+                            <img src="assets/vestido3.png" alt="Nova Coleção">
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-button-next"></div>
+                <div class="swiper-button-prev"></div>
+                <div class="swiper-pagination"></div>
+            </div>
+        </section>
+
+        <nav class="category-nav">
+            <div class="container-categorias">
+                <button class="cat-item active" onclick="filtrarPorCategoria('todos')">Tudo</button>
+                <button class="cat-item" onclick="filtrarPorCategoria('vestidos')">Vestidos</button>
+                <button class="cat-item" onclick="filtrarPorCategoria('blusas')">Blusas</button>
+                <button class="cat-item" onclick="filtrarPorCategoria('conjuntos')">Conjuntos</button>
+                <button class="cat-item" onclick="filtrarPorCategoria('acessorios')">Acessórios</button>
+            </div>
+        </nav>
+
+        <h2 id="titulo-pagina" style="margin: 40px 0 20px; text-align: center; font-family: 'Georgia', serif; color: #333; letter-spacing: 1px;">Nossas Peças</h2>
+        
+        <div id="lista-produtos" class="vitrine">
+            </div>
+    </main>
+
+    <a href="https://wa.me/5551999999999" class="whatsapp-float" target="_blank" title="Fale Conosco">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="script.js"></script> 
+    
+    <script>
+        var swiper = new Swiper(".mySwiper", {
+            slidesPerView: 3,
+            spaceBetween: 25,
+            loop: true,
+            autoplay: { delay: 4000, disableOnInteraction: false },
+            pagination: { el: ".swiper-pagination", clickable: true },
+            navigation: { nextEl: ".swiper-button-next", prevEl: ".swiper-button-prev" },
+            breakpoints: {
+                320: { slidesPerView: 1 },
+                768: { slidesPerView: 2 },
+                1024: { slidesPerView: 3 }
+            }
+        });
+    </script>
+</body>
+</html>

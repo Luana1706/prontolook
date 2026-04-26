@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Carrinho | Pronto Look</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+</head>
+<body style="background-color: var(--rosa-fundo);">
+    <header class="main-header">
+        <div class="header-container">
+            <div class="logo">
+                <a href="index.html" style="text-decoration: none;">
+                    <span class="logo-texto">Pronto <span class="logo-destaque">Look</span></span>
+                </a>
+            </div>
+            <nav class="main-nav" style="border: none; padding: 0;">
+                <a href="index.html">Voltar para a Loja</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="carrinho-main">
+        <header class="header-carrinho" style="margin-bottom: 40px; text-align: center;">
+            <h2 style="font-family: 'Playfair Display', serif; font-size: 32px; color: #333;">Meu Carrinho</h2>
+            <p style="color: #888; font-size: 14px;">Confira suas peças selecionadas antes de finalizar.</p>
+        </header>
+
+        <div id="lista-carrinho">
+            <!-- Itens serão inseridos aqui pelo script -->
+        </div>
+
+        <div class="resumo-pagamento">
+            <h3>Total do Pedido</h3>
+            <div style="margin: 15px 0;">
+                <span id="total-carrinho" style="font-size: 32px; color: var(--rosa-principal);">0,00</span>
+            </div>
+            <button class="btn-cadastrar btn-finalizar-compra" style="max-width: 300px; margin-left: auto;">FINALIZAR COMPRA</button>
+            <p style="font-size: 12px; color: #999; margin-top: 15px;">Parcelamento em até 6x sem juros no cartão.</p>
+        </div>
+    </main>
+
+    <script src="carrinho_script.js"></script>
+</body>
+</html>

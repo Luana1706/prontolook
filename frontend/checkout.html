@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagamento | Pronto Look</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        .checkout-container { max-width: 600px; margin: 40px auto; padding: 20px; }
+        .payment-method { 
+            background: white; padding: 20px; border-radius: 15px; border: 2px solid #eee; margin-bottom: 15px;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 20px;
+        }
+        .payment-method:hover { border-color: var(--rosa-principal); background: var(--rosa-fundo); }
+        .payment-method.active { border-color: var(--rosa-principal); background: var(--rosa-claro); }
+        .card-icons { display: flex; gap: 10px; font-size: 24px; color: #666; }
+        .pix-qr { text-align: center; display: none; padding: 20px; background: #f9f9f9; border-radius: 15px; margin-top: 10px; }
+    </style>
+</head>
+<body style="background: var(--rosa-fundo);">
+    <div class="checkout-container">
+        <header style="text-align: center; margin-bottom: 30px;">
+            <h2 style="font-family: 'Playfair Display'; font-size: 28px;">Finalizar Pagamento</h2>
+            <p>Escolha como deseja pagar seu pedido</p>
+        </header>
+
+        <div class="payment-options">
+            <!-- CARTÃO DE CRÉDITO -->
+            <div class="payment-method" onclick="selectMethod('credito')">
+                <i class="fas fa-credit-card" style="font-size: 30px; color: var(--rosa-principal);"></i>
+                <div style="flex-grow: 1;">
+                    <h4 style="margin: 0;">Cartão de Crédito</h4>
+                    <p style="font-size: 12px; color: #888; margin: 0;">Em até 6x sem juros</p>
+                </div>
+                <div class="card-icons">
+                    <i class="fab fa-cc-visa"></i>
+                    <i class="fab fa-cc-mastercard"></i>
+                    <i class="fab fa-cc-amex"></i>
+                </div>
+            </div>
+
+            <!-- DÉBITO -->
+            <div class="payment-method" onclick="selectMethod('debito')">
+                <i class="fas fa-university" style="font-size: 30px; color: #555;"></i>
+                <div style="flex-grow: 1;">
+                    <h4 style="margin: 0;">Débito Online</h4>
+                    <p style="font-size: 12px; color: #888; margin: 0;">Pagamento à vista</p>
+                </div>
+                <i class="fas fa-check-circle" style="color: #ddd;"></i>
+            </div>
+
+            <!-- PIX -->
+            <div class="payment-method" onclick="selectMethod('pix')">
+                <i class="fas fa-qrcode" style="font-size: 30px; color: #32bcad;"></i>
+                <div style="flex-grow: 1;">
+                    <h4 style="margin: 0;">PIX</h4>
+                    <p style="font-size: 12px; color: #888; margin: 0;">Aprovação imediata (5% de desconto)</p>
+                </div>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/Logo%E2%80%94_Pix.png" width="40" alt="Pix">
+            </div>
+
+            <div id="pix-area" class="pix-qr">
+                <p style="font-size: 14px; font-weight: bold;">Escaneie o QR Code abaixo:</p>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=PRONTOLOOK-PIX-EXEMPLO" alt="QR Code">
+                <p style="margin-top: 10px; font-size: 12px; color: #666;">Chave: financeiro@prontolook.com.br</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 40px; background: white; padding: 25px; border-radius: 20px;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                <span>Subtotal:</span>
+                <span id="subtotal">R$ 0,00</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 20px; border-top: 1px solid #eee; pt: 10px;">
+                <span>Total:</span>
+                <span id="total-final">R$ 0,00</span>
+            </div>
+            <button class="btn-cadastrar" style="margin-top: 20px;">CONFIRMAR PAGAMENTO</button>
+        </div>
+    </div>
+
+    <script>
+        function selectMethod(method) {
+            document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.getElementById('pix-area').style.display = (method === 'pix') ? 'block' : 'none';
+        }
+
+        // Recuperar total do localStorage (vindo do carrinho)
+        const totalCarrinho = localStorage.getItem('totalCarrinho') || "0,00";
+        document.getElementById('subtotal').innerText = `R$ ${totalCarrinho}`;
+        document.getElementById('total-final').innerText = `R$ ${totalCarrinho}`;
+    </script>
+</body>
+</html>

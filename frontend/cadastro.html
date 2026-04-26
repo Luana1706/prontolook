@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro - Pronto Look</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="cadastro-wrapper">
+        <div class="container-cadastro">
+            <header class="header-form">
+                <h2 class="logo-texto">Pronto <span class="logo-destaque">Look</span></h2>
+                <h3>Criar Conta</h3>
+                <p>Junte-se à nossa comunidade de estilo.</p>
+            </header>
+
+            <form id="formCadastro" enctype="multipart/form-data">
+                <div class="input-group">
+                    <label for="nome">Nome Completo</label>
+                    <input type="text" id="nome" name="nome" placeholder="Ex: Luana Silva" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" placeholder="exemplo@email.com" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" placeholder="••••••••" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="foto" class="label-file">Sua Foto (Opcional)</label>
+                    <input type="file" id="foto" name="imagem" accept="image/*">
+                </div>
+
+                <button type="submit" class="btn-cadastrar">CADASTRAR</button>
+            </form>
+
+            <p id="mensagem"></p>
+            
+            <footer class="footer-form">
+                <p>Já tem uma conta? <a href="login.html" class="link-login">Fazer login</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
