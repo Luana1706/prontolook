@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso Restrito | Pronto Look</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div class="cadastro-wrapper">
+        <div class="container-cadastro admin-login-container">
+            <header class="header-form">
+                <div class="admin-login-icon">
+                    <i class="fas fa-shield-halved"></i>
+                </div>
+                <a href="index.html" class="logo-link">
+                    <h2 class="logo-texto">Pronto <span class="logo-destaque">Look</span></h2>
+                </a>
+                <h3>Acesso Restrito</h3>
+                <p>Área exclusiva para administradores da loja.</p>
+            </header>
+
+            <form id="formAdminLogin">
+                <div class="input-group">
+                    <label for="admin-email">E-mail do Administrador</label>
+                    <input type="email" id="admin-email" placeholder="admin@prontolook.com.br" required>
+                </div>
+                <div class="input-group">
+                    <label for="admin-senha">Senha</label>
+                    <input type="password" id="admin-senha" placeholder="Sua senha de administrador" required>
+                </div>
+                <button type="submit" class="btn-cadastrar btn-rosa">
+                    <i class="fas fa-lock"></i> &nbsp; ACESSAR PAINEL
+                </button>
+            </form>
+
+            <p id="admin-mensagem" style="margin-top: 15px; font-size: 14px;"></p>
+
+            <footer class="footer-form">
+                <p><a href="login.html"><i class="fas fa-arrow-left"></i> Voltar ao login de cliente</a></p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+
+        document.getElementById('formAdminLogin').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('admin-email').value.trim();
+            const senha = document.getElementById('admin-senha').value;
+            const msg = document.getElementById('admin-mensagem');
+            const btn = e.target.querySelector('button');
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> &nbsp; VERIFICANDO...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_URL}/usuarios/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.usuario && data.usuario.role === 'admin') {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('usuarioLogado', JSON.stringify(data.usuario));
+                    msg.innerText = "Acesso autorizado! Redirecionando...";
+                    msg.style.color = "#27ae60";
+                    setTimeout(() => { window.location.href = "admin.html"; }, 800);
+                } else if (res.ok) {
+                    msg.innerText = "Esta conta não possui permissão de administrador.";
+                    msg.style.color = "#e74c3c";
+                } else {
+                    msg.innerText = data.mensagem || "Credenciais inválidas.";
+                    msg.style.color = "#e74c3c";
+                }
+            } catch (err) {
+                console.error(err);
+                msg.innerText = "Erro ao conectar ao servidor.";
+                msg.style.color = "#e74c3c";
+            } finally {
+                btn.innerHTML = '<i class="fas fa-lock"></i> &nbsp; ACESSAR PAINEL';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

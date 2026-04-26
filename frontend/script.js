@@ -1,16 +1,26 @@
-// Detecta se está rodando local ou na Vercel
 const API_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:3000'
     : '';
 
 let produtosDoBanco = [];
 
-// Helper para obter headers com token JWT
 function getAuthHeaders() {
     const token = localStorage.getItem('token');
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
     return headers;
+}
+
+// Toast notifications
+function mostrarToast(mensagem, tipo = 'sucesso') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const icons = { sucesso: 'fa-check-circle', erro: 'fa-times-circle', aviso: 'fa-exclamation-triangle' };
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${tipo}`;
+    toast.innerHTML = `<i class="fas ${icons[tipo] || icons.sucesso}"></i><span>${mensagem}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3200);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     atualizarVisualContador();
 });
 
-// 1. BUSCAR PRODUTOS DO BACKEND
+// 1. BUSCAR PRODUTOS
 async function carregarProdutos() {
     const lista = document.getElementById('lista-produtos');
     if (!lista) return;
@@ -33,7 +43,7 @@ async function carregarProdutos() {
     } catch (error) {
         console.error("Erro ao carregar vitrine:", error);
         if (lista) {
-            lista.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #999;'>Não foi possível carregar os produtos.</p>";
+            lista.innerHTML = "<p class='vitrine-vazia'>Não foi possível carregar os produtos.</p>";
         }
     }
 }
@@ -42,7 +52,6 @@ async function carregarProdutos() {
 function exibirProdutos(listaParaExibir) {
     const lista = document.getElementById('lista-produtos');
     if (!lista) return;
-
     lista.innerHTML = "";
 
     if (listaParaExibir.length === 0) {
@@ -62,7 +71,7 @@ function exibirProdutos(listaParaExibir) {
 
         card.innerHTML = `
             <div class="img-wrapper">
-                ${!emEstoque ? '<div class="badge-esgotado">ESGOTADO</div>' : ''}
+                ${!emEstoque ? '<div class="badge-esgotado">Esgotado</div>' : ''}
                 <img src="${imgPath}" alt="${produto.nome}"
                      class="produto-img ${!emEstoque ? 'img-esgotado' : ''}"
                      onerror="this.src='https://via.placeholder.com/400x600?text=Pronto+Look';">
@@ -74,11 +83,12 @@ function exibirProdutos(listaParaExibir) {
                     <span class="preco">R$ ${Number(produto.preco).toFixed(2).replace('.', ',')}</span>
                     <button class="btn-comprar ${!emEstoque ? 'btn-desabilitado' : ''}"
                             ${emEstoque ? `onclick="adicionarAoCarrinho(event, ${idProduto})"` : ''}
-                            ${!emEstoque ? 'disabled' : ''}>
+                            ${!emEstoque ? 'disabled' : ''}
+                            title="${emEstoque ? 'Adicionar ao carrinho' : 'Produto esgotado'}">
                         <i class="fas ${emEstoque ? 'fa-plus' : 'fa-times'}"></i>
                     </button>
                 </div>
-                ${emEstoque && produto.estoque < 5 ? `<p class="alerta-estoque">Apenas ${produto.estoque} unidades!</p>` : ''}
+                ${emEstoque && produto.estoque <= 5 ? `<p class="alerta-estoque">Apenas ${produto.estoque} em estoque!</p>` : ''}
             </div>
         `;
 
@@ -105,7 +115,7 @@ function filtrarPorCategoria(categoria) {
     }
 }
 
-// 4. BUSCA DE PRODUTOS
+// 4. BUSCA
 function configurarBusca() {
     const campoBusca = document.getElementById('campo-busca');
     if (!campoBusca) return;
@@ -125,19 +135,9 @@ function configurarBusca() {
     });
 }
 
-// 5. ACESSO RESTRITO (ADMIN)
+// 5. ACESSO RESTRITO (redireciona para login do admin)
 function verificarAdmin() {
-    const userRaw = localStorage.getItem('usuarioLogado');
-    if (userRaw) {
-        const user = JSON.parse(userRaw);
-        if (user.role === 'admin') {
-            window.location.href = "admin.html";
-        } else {
-            alert("Acesso restrito apenas para administradores.");
-        }
-    } else {
-        window.location.href = "login.html";
-    }
+    window.location.href = "admin_login.html";
 }
 
 // 6. FORMULÁRIOS (LOGIN E CADASTRO)
@@ -149,6 +149,10 @@ function configurarFormularios() {
             const email = document.getElementById('email').value.trim();
             const senha = document.getElementById('senha').value;
             const msg = document.getElementById('mensagem');
+            const btn = formLogin.querySelector('button[type="submit"]');
+
+            btn.innerText = "ENTRANDO...";
+            btn.disabled = true;
 
             try {
                 const res = await fetch(`${API_URL}/usuarios/login`, {
@@ -165,17 +169,18 @@ function configurarFormularios() {
                 } else {
                     if (msg) {
                         msg.innerText = data.mensagem;
-                        msg.style.color = "red";
-                    } else {
-                        alert(data.mensagem);
+                        msg.style.color = "#e74c3c";
                     }
                 }
             } catch (err) {
                 console.error(err);
                 if (msg) {
                     msg.innerText = "Erro ao conectar ao servidor.";
-                    msg.style.color = "red";
+                    msg.style.color = "#e74c3c";
                 }
+            } finally {
+                btn.innerText = "ENTRAR";
+                btn.disabled = false;
             }
         });
     }
@@ -187,42 +192,57 @@ function configurarFormularios() {
             const nome = document.getElementById('nome').value;
             const email = document.getElementById('email').value;
             const senha = document.getElementById('senha').value;
+            const foto = document.getElementById('foto');
             const msg = document.getElementById('mensagem');
+            const btn = formCadastro.querySelector('button[type="submit"]');
 
             if (senha.length < 6) {
                 if (msg) {
                     msg.innerText = "A senha deve ter no mínimo 6 caracteres.";
-                    msg.style.color = "red";
+                    msg.style.color = "#e74c3c";
                 }
                 return;
             }
 
+            btn.innerText = "CRIANDO CONTA...";
+            btn.disabled = true;
+
             try {
+                const formData = new FormData();
+                formData.append('nome', nome);
+                formData.append('email', email);
+                formData.append('senha', senha);
+                if (foto && foto.files[0]) {
+                    formData.append('imagem', foto.files[0]);
+                }
+
                 const res = await fetch(`${API_URL}/usuarios/cadastro`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome, email, senha })
+                    body: formData
                 });
                 const data = await res.json();
 
                 if (res.ok) {
                     if (msg) {
                         msg.innerText = data.mensagem;
-                        msg.style.color = "green";
+                        msg.style.color = "#27ae60";
                     }
                     setTimeout(() => { window.location.href = "login.html"; }, 1500);
                 } else {
                     if (msg) {
                         msg.innerText = data.mensagem;
-                        msg.style.color = "red";
+                        msg.style.color = "#e74c3c";
                     }
                 }
             } catch (err) {
                 console.error(err);
                 if (msg) {
                     msg.innerText = "Erro ao conectar ao servidor.";
-                    msg.style.color = "red";
+                    msg.style.color = "#e74c3c";
                 }
+            } finally {
+                btn.innerText = "CRIAR MINHA CONTA";
+                btn.disabled = false;
             }
         });
     }
@@ -238,9 +258,19 @@ function gerenciarLogin() {
 
     if (usuarioRaw && usuarioRaw !== "undefined" && token) {
         const user = JSON.parse(usuarioRaw);
-        if (boasVindas) boasVindas.innerText = `Olá, ${user.nome}!`;
+        if (boasVindas) boasVindas.innerText = `Olá, ${user.nome}`;
         if (links) links.style.display = 'none';
-        if (logged) logged.style.display = 'flex';
+        if (logged) {
+            logged.style.display = 'flex';
+            logged.classList.remove('user-logged-hidden');
+        }
+
+        // Show user photo in header
+        const fotoHeader = document.getElementById('user-foto-header');
+        if (fotoHeader && user.foto_url) {
+            fotoHeader.src = user.foto_url;
+            fotoHeader.style.display = 'block';
+        }
 
         if (user.role === 'admin' && !document.getElementById('btn-admin-nav')) {
             const nav = document.querySelector('.main-nav');
@@ -255,14 +285,21 @@ function gerenciarLogin() {
         }
     } else {
         if (links) links.style.display = 'flex';
-        if (logged) logged.style.display = 'none';
+        if (logged) {
+            logged.style.display = 'none';
+            logged.classList.add('user-logged-hidden');
+        }
     }
 }
 
-// 8. ADICIONAR AO CARRINHO (COM JWT)
+// 8. ADICIONAR AO CARRINHO (COM JWT + TOAST)
 async function adicionarAoCarrinho(event, produto_id) {
     const token = localStorage.getItem('token');
     if (!token) { window.location.href = "login.html"; return; }
+
+    const btn = event.currentTarget;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
     try {
         const res = await fetch(`${API_URL}/carrinho/adicionar`, {
@@ -273,10 +310,17 @@ async function adicionarAoCarrinho(event, produto_id) {
         const data = await res.json();
         if (res.ok) {
             atualizarVisualContador();
+            mostrarToast("Adicionado ao carrinho!", "sucesso");
         } else {
-            alert(data.mensagem);
+            mostrarToast(data.mensagem, "aviso");
         }
-    } catch (err) { console.error(err); }
+    } catch (err) {
+        console.error(err);
+        mostrarToast("Erro ao adicionar.", "erro");
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plus"></i>';
+    }
 }
 
 // 9. CONTADOR DO CARRINHO
@@ -291,7 +335,8 @@ async function atualizarVisualContador() {
         });
         if (res.ok) {
             const itens = await res.json();
-            contador.innerText = itens.length;
+            const total = itens.reduce((sum, item) => sum + item.quantidade, 0);
+            contador.innerText = total;
         }
     } catch (err) { console.error(err); }
 }

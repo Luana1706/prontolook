@@ -1,4 +1,3 @@
-// Detecta se está rodando local ou na Vercel
 const API_URL = window.location.hostname === 'localhost'
     ? 'http://localhost:3000'
     : '';
@@ -35,7 +34,8 @@ async function carregarItensCarrinho() {
                 <div class="carrinho-vazio">
                     <i class="fas fa-shopping-bag"></i>
                     <p>Seu carrinho está vazio.</p>
-                    <a href="index.html" class="btn-cadastrar btn-continuar">CONTINUAR COMPRANDO</a>
+                    <p style="color: #ccc; font-size: 13px; margin-top: 5px;">Explore nossa coleção e encontre peças incríveis.</p>
+                    <a href="index.html" class="btn-cadastrar btn-continuar">EXPLORAR COLEÇÃO</a>
                 </div>`;
             totalElemento.innerText = "0,00";
             return;
@@ -53,16 +53,26 @@ async function carregarItensCarrinho() {
                 ? rawImg
                 : `assets/${rawImg.replace(/ /g, '%20')}`;
 
+            const estoqueExcedido = item.quantidade > item.estoque;
+            const estoqueBaixo = item.estoque <= 5 && item.estoque > 0;
+
             container.innerHTML += `
-                <div class="item-carrinho">
+                <div class="item-carrinho ${estoqueExcedido ? 'item-estoque-excedido' : ''}">
                     <div class="item-info-wrapper">
                         <img src="${imgPath}" class="img-carrinho" alt="${item.nome}" onerror="this.src='assets/placeholder.png';">
                         <div class="info">
                             <h4>${item.nome}</h4>
-                            <p>Preço unitário: R$ ${Number(item.preco).toFixed(2).replace('.', ',')}</p>
+                            <p>R$ ${Number(item.preco).toFixed(2).replace('.', ',')} /un</p>
                             <div class="qtd-seletor">
-                                Quantidade: ${item.quantidade}
+                                <span>Qtd:</span>
+                                <div class="qtd-controles">
+                                    <button class="btn-qtd" onclick="alterarQuantidade(${item.id}, ${item.quantidade - 1}, ${item.estoque})">−</button>
+                                    <span class="qtd-valor">${item.quantidade}</span>
+                                    <button class="btn-qtd" onclick="alterarQuantidade(${item.id}, ${item.quantidade + 1}, ${item.estoque})">+</button>
+                                </div>
                             </div>
+                            ${estoqueExcedido ? `<p class="aviso-estoque-carrinho"><i class="fas fa-exclamation-circle"></i> Apenas ${item.estoque} disponível!</p>` : ''}
+                            ${!estoqueExcedido && estoqueBaixo ? `<p class="aviso-estoque-carrinho" style="color: #c9a96e;"><i class="fas fa-info-circle"></i> Últimas ${item.estoque} unidades</p>` : ''}
                         </div>
                     </div>
                     <div class="preco-subtotal">
@@ -83,6 +93,11 @@ async function carregarItensCarrinho() {
         const btnFinalizar = document.querySelector('.btn-finalizar-compra');
         if (btnFinalizar) {
             btnFinalizar.onclick = () => {
+                const temExcedido = itens.some(i => i.quantidade > i.estoque);
+                if (temExcedido) {
+                    alert("Alguns itens no carrinho excedem o estoque disponível. Ajuste as quantidades antes de finalizar.");
+                    return;
+                }
                 localStorage.setItem('totalCarrinho', totalGeral.toFixed(2).replace('.', ','));
                 window.location.href = "checkout.html";
             };
@@ -91,6 +106,30 @@ async function carregarItensCarrinho() {
     } catch (error) {
         console.error("Erro ao carregar carrinho:", error);
         container.innerHTML = "<p class='carrinho-erro'>Erro ao carregar o carrinho. Tente novamente.</p>";
+    }
+}
+
+async function alterarQuantidade(carrinhoId, novaQtd, estoqueMax) {
+    if (novaQtd <= 0) {
+        removerItem(carrinhoId);
+        return;
+    }
+    if (novaQtd > estoqueMax) {
+        alert(`Estoque insuficiente! Temos apenas ${estoqueMax} unidade(s) disponível(is).`);
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/carrinho/atualizar/${carrinhoId}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ quantidade: novaQtd })
+        });
+        if (res.ok) {
+            carregarItensCarrinho();
+        }
+    } catch (error) {
+        console.error("Erro ao atualizar quantidade:", error);
     }
 }
 

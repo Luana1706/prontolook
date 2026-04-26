@@ -3,42 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Pronto Look</title>
+    <title>Entrar | Pronto Look</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
     <div class="cadastro-wrapper">
         <div class="container-cadastro">
             <header class="header-form">
-                <h2 class="logo-texto">Pronto <span class="logo-destaque">Look</span></h2>
-                <h3>Entrar</h3>
+                <a href="index.html" class="logo-link">
+                    <h2 class="logo-texto">Pronto <span class="logo-destaque">Look</span></h2>
+                </a>
+                <h3>Bem-vinda de volta</h3>
                 <p>Acesse sua conta para conferir as novidades.</p>
             </header>
 
             <form id="formLogin">
                 <div class="input-group">
                     <label for="email">E-mail</label>
-                    <input type="email" id="email" placeholder="Seu e-mail" required>
+                    <input type="email" id="email" placeholder="seu@email.com" required>
                 </div>
                 <div class="input-group">
                     <label for="senha">Senha</label>
                     <input type="password" id="senha" placeholder="Sua senha" required>
                 </div>
                 <button type="submit" class="btn-cadastrar">ENTRAR</button>
-                <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px;">
-                    <a href="recuperar.html" style="font-size: 13px; color: #888; text-decoration: none;">Esqueceu sua senha?</a>
-                    <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
-                    <button type="button" onclick="verificarAdmin()" style="background: none; border: 1px solid #ccc; padding: 10px; border-radius: 12px; font-size: 12px; color: #666; cursor: pointer; font-weight: 600;">
-                        <i class="fas fa-lock"></i> ACESSO RESTRITO
+
+                <div class="login-extras">
+                    <a href="recuperar.html" class="link-esqueci">Esqueceu sua senha?</a>
+                    <div class="divisor-ou"><span>ou</span></div>
+                    <button type="button" onclick="verificarAdmin()" class="btn-admin-login">
+                        <i class="fas fa-lock"></i> Acesso Administrador
                     </button>
                 </div>
             </form>
 
             <p id="mensagem"></p>
-            
+
             <footer class="footer-form">
-                <p>Ainda não tem conta? <a href="cadastro.html">Criar uma aqui</a></p>
+                <p>Primeira vez aqui? <a href="cadastro.html">Criar uma conta</a></p>
             </footer>
         </div>
     </div>
