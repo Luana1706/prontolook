@@ -82,10 +82,18 @@ router.post('/login', [
     const { email, senha } = req.body;
 
     try {
-        const result = await pool.query(
-            'SELECT id, nome, email, senha, role, foto_url FROM usuarios WHERE LOWER(email) = $1',
-            [email.trim().toLowerCase()]
-        );
+        let result;
+        try {
+            result = await pool.query(
+                'SELECT id, nome, email, senha, role, foto_url FROM usuarios WHERE LOWER(email) = $1',
+                [email.trim().toLowerCase()]
+            );
+        } catch (queryErr) {
+            result = await pool.query(
+                'SELECT id, nome, email, senha, role FROM usuarios WHERE LOWER(email) = $1',
+                [email.trim().toLowerCase()]
+            );
+        }
 
         if (result.rows.length === 0) {
             return res.status(401).json({ sucesso: false, mensagem: "E-mail ou senha incorretos." });
