@@ -10,13 +10,13 @@ const storage = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: 'produtos_prontolook',
-        allowed_formats: ['jpg', 'png', 'jpeg'],
+        // Removido allowed_formats para evitar rejeições desnecessárias
     },
 });
 
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 50 * 1024 * 1024 } // Limite de 50MB
+  limits: { fileSize: 10 * 1024 * 1024 } // Voltando para 10MB
 });
 
 // ROTA: Buscar todos os produtos (pública)
