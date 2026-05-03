@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
 
 // ROTA: Adicionar novo produto (apenas admin autenticado)
 router.post('/adicionar', autenticar, apenasAdmin, upload.single('imagem'), async (req, res) => {
-    const { nome, descricao, preco, categoria, estoque, eh_novidade, tamanhos } = req.body;
+    const { nome, descricao, preco, categoria, eh_novidade, tamanhos, estoque_por_tamanho } = req.body;
 
     if (!nome || !preco) {
         return res.status(400).json({ sucesso: false, mensagem: "Nome e preço são obrigatórios." });
@@ -40,12 +40,20 @@ router.post('/adicionar', autenticar, apenasAdmin, upload.single('imagem'), asyn
 
     try {
         const imagem_url = req.file ? req.file.path : 'placeholder.png';
-        const estoqueFinal = parseInt(estoque) || 0;
         const novidadeBool = eh_novidade === 'true' || eh_novidade === true;
+        
+        // Processar estoque por tamanho (espera-se um objeto JSON ou string JSON)
+        let estoqueDetalhado = {};
+        try {
+            estoqueDetalhado = typeof estoque_por_tamanho === 'string' ? JSON.parse(estoque_por_tamanho) : (estoque_por_tamanho || {});
+        } catch (e) { console.error("Erro ao parsear estoque detalhado", e); }
+
+        // Calcular estoque total
+        const estoqueTotal = Object.values(estoqueDetalhado).reduce((acc, val) => acc + (parseInt(val) || 0), 0);
 
         const novoProduto = await pool.query(
-            'INSERT INTO produtos (nome, descricao, preco, categoria, estoque, imagem_url, eh_novidade, tamanhos) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-            [nome, descricao, preco, categoria, estoqueFinal, imagem_url, novidadeBool, tamanhos || '']
+            'INSERT INTO produtos (nome, descricao, preco, categoria, estoque, imagem_url, eh_novidade, tamanhos, estoque_por_tamanho) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+            [nome, descricao, preco, categoria, estoqueTotal, imagem_url, novidadeBool, tamanhos || '', estoqueDetalhado]
         );
 
         res.status(201).json({ sucesso: true, produto: novoProduto.rows[0] });
@@ -58,7 +66,7 @@ router.post('/adicionar', autenticar, apenasAdmin, upload.single('imagem'), asyn
 // ROTA: Atualizar produto (apenas admin)
 router.put('/:id', autenticar, apenasAdmin, upload.single('imagem'), async (req, res) => {
     const { id } = req.params;
-    const { nome, descricao, preco, categoria, estoque, eh_novidade, tamanhos } = req.body;
+    const { nome, descricao, preco, categoria, eh_novidade, tamanhos, estoque_por_tamanho } = req.body;
 
     try {
         const produtoAtual = await pool.query('SELECT imagem_url FROM produtos WHERE id = $1', [id]);
@@ -69,9 +77,17 @@ router.put('/:id', autenticar, apenasAdmin, upload.single('imagem'), async (req,
         const imagem_url = req.file ? req.file.path : produtoAtual.rows[0].imagem_url;
         const novidadeBool = eh_novidade === 'true' || eh_novidade === true;
 
+        // Processar estoque por tamanho
+        let estoqueDetalhado = {};
+        try {
+            estoqueDetalhado = typeof estoque_por_tamanho === 'string' ? JSON.parse(estoque_por_tamanho) : (estoque_por_tamanho || {});
+        } catch (e) { console.error("Erro ao parsear estoque detalhado", e); }
+
+        const estoqueTotal = Object.values(estoqueDetalhado).reduce((acc, val) => acc + (parseInt(val) || 0), 0);
+
         const produtoAtualizado = await pool.query(
-            'UPDATE produtos SET nome = $1, descricao = $2, preco = $3, categoria = $4, estoque = $5, imagem_url = $6, eh_novidade = $7, tamanhos = $8 WHERE id = $9 RETURNING *',
-            [nome, descricao, preco, categoria, estoque, imagem_url, novidadeBool, tamanhos, id]
+            'UPDATE produtos SET nome = $1, descricao = $2, preco = $3, categoria = $4, estoque = $5, imagem_url = $6, eh_novidade = $7, tamanhos = $8, estoque_por_tamanho = $9 WHERE id = $10 RETURNING *',
+            [nome, descricao, preco, categoria, estoqueTotal, imagem_url, novidadeBool, tamanhos, estoqueDetalhado, id]
         );
 
         res.json({ sucesso: true, produto: produtoAtualizado.rows[0] });

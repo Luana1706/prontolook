@@ -60,18 +60,11 @@
                 </div>
                 <div class="admin-grid-2">
                     <div class="input-group">
-                        <label>Estoque</label>
-                        <input type="number" id="admin-estoque" placeholder="Quantidade" required min="0">
-                    </div>
-                    <div class="input-group">
                         <label>Imagem do Produto</label>
                         <input type="file" id="admin-imagem" accept="image/*">
-                        <p class="admin-hint">JPG, PNG — Upload automático via Cloudinary (Máx 50MB)</p>
+                        <p class="admin-hint">JPG, PNG — Máx 50MB</p>
                     </div>
-                </div>
-
-                <div class="admin-grid-2">
-                    <div class="input-group-checkbox">
+                    <div class="input-group-checkbox" style="margin-top: 35px;">
                         <label class="checkbox-label">
                             <input type="checkbox" id="admin-novidade"> Marcar como Novidade
                         </label>
@@ -79,15 +72,22 @@
                 </div>
 
                 <div class="input-group">
-                    <label>Tamanhos Disponíveis</label>
+                    <label>Selecione os Tamanhos e Quantidades</label>
                     <div class="admin-tamanhos-grid">
-                        <label><input type="checkbox" name="tamanho" value="PP"> PP</label>
-                        <label><input type="checkbox" name="tamanho" value="P"> P</label>
-                        <label><input type="checkbox" name="tamanho" value="M"> M</label>
-                        <label><input type="checkbox" name="tamanho" value="G"> G</label>
-                        <label><input type="checkbox" name="tamanho" value="GG"> GG</label>
-                        <label><input type="checkbox" name="tamanho" value="XG"> XG</label>
-                        <label><input type="checkbox" name="tamanho" value="Plus Size"> Plus Size</label>
+                        <label><input type="checkbox" name="tamanho" value="PP" onchange="gerarInputsEstoque()"> PP</label>
+                        <label><input type="checkbox" name="tamanho" value="P" onchange="gerarInputsEstoque()"> P</label>
+                        <label><input type="checkbox" name="tamanho" value="M" onchange="gerarInputsEstoque()"> M</label>
+                        <label><input type="checkbox" name="tamanho" value="G" onchange="gerarInputsEstoque()"> G</label>
+                        <label><input type="checkbox" name="tamanho" value="GG" onchange="gerarInputsEstoque()"> GG</label>
+                        <label><input type="checkbox" name="tamanho" value="XG" onchange="gerarInputsEstoque()"> XG</label>
+                        <label><input type="checkbox" name="tamanho" value="Plus Size" onchange="gerarInputsEstoque()"> Plus Size</label>
+                    </div>
+                </div>
+
+                <div id="estoque-detalhado-container" class="input-group" style="display:none; background: #fdf2f6; padding: 20px; border-radius: 12px; border: 1px dashed var(--rosa-principal);">
+                    <label style="color: var(--rosa-principal);">Defina as Quantidades:</label>
+                    <div id="grid-estoque-inputs" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; margin-top: 10px;">
+                        <!-- Gerado via JS -->
                     </div>
                 </div>
 
@@ -105,7 +105,7 @@
                             <th>Produto</th>
                             <th>Categoria</th>
                             <th>Preço</th>
-                            <th>Estoque</th>
+                            <th>Estoque Total</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -161,13 +161,19 @@
                 <div class="input-group">
                     <label>Tamanhos</label>
                     <div class="admin-tamanhos-grid">
-                        <label><input type="checkbox" name="edit-tamanho" value="PP"> PP</label>
-                        <label><input type="checkbox" name="edit-tamanho" value="P"> P</label>
-                        <label><input type="checkbox" name="edit-tamanho" value="M"> M</label>
-                        <label><input type="checkbox" name="edit-tamanho" value="G"> G</label>
-                        <label><input type="checkbox" name="edit-tamanho" value="GG"> GG</label>
-                        <label><input type="checkbox" name="edit-tamanho" value="XG"> XG</label>
-                        <label><input type="checkbox" name="edit-tamanho" value="Plus Size"> Plus Size</label>
+                        <label><input type="checkbox" name="edit-tamanho" value="PP" onchange="gerarInputsEstoqueEdit()"> PP</label>
+                        <label><input type="checkbox" name="edit-tamanho" value="P" onchange="gerarInputsEstoqueEdit()"> P</label>
+                        <label><input type="checkbox" name="edit-tamanho" value="M" onchange="gerarInputsEstoqueEdit()"> M</label>
+                        <label><input type="checkbox" name="edit-tamanho" value="G" onchange="gerarInputsEstoqueEdit()"> G</label>
+                        <label><input type="checkbox" name="edit-tamanho" value="GG" onchange="gerarInputsEstoqueEdit()"> GG</label>
+                        <label><input type="checkbox" name="edit-tamanho" value="XG" onchange="gerarInputsEstoqueEdit()"> XG</label>
+                        <label><input type="checkbox" name="edit-tamanho" value="Plus Size" onchange="gerarInputsEstoqueEdit()"> Plus Size</label>
+                    </div>
+                </div>
+                <div id="edit-estoque-detalhado-container" class="input-group" style="display:none; background: #f0fdf4; padding: 20px; border-radius: 12px; border: 1px dashed #16a34a;">
+                    <label style="color: #16a34a;">Ajustar Quantidades:</label>
+                    <div id="edit-grid-estoque-inputs" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 15px; margin-top: 10px;">
+                        <!-- Gerado via JS -->
                     </div>
                 </div>
                 <button type="submit" class="btn-cadastrar btn-rosa">SALVAR ALTERAÇÕES</button>
@@ -186,27 +192,72 @@
 
         const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
 
-        // Load stats and list
+        // Dinâmica de Estoque por Tamanho
+        function gerarInputsEstoque() {
+            const checkboxes = document.querySelectorAll('input[name="tamanho"]:checked');
+            const container = document.getElementById('estoque-detalhado-container');
+            const grid = document.getElementById('grid-estoque-inputs');
+            grid.innerHTML = "";
+            if (checkboxes.length === 0) { container.style.display = "none"; return; }
+            container.style.display = "block";
+            checkboxes.forEach(cb => {
+                const div = document.createElement('div');
+                div.innerHTML = `<span style="font-size: 11px; font-weight: 700;">Qtd ${cb.value}:</span>
+                                 <input type="number" class="input-estoque-tam" data-tam="${cb.value}" value="0" min="0" style="width:100%; padding: 8px; border-radius: 8px; border: 1px solid #ddd;">`;
+                grid.appendChild(div);
+            });
+        }
+
+        function gerarInputsEstoqueEdit(estoqueExistente = null) {
+            const checkboxes = document.querySelectorAll('input[name="edit-tamanho"]:checked');
+            const container = document.getElementById('edit-estoque-detalhado-container');
+            const grid = document.getElementById('edit-grid-estoque-inputs');
+            
+            // Se estoqueExistente for nulo, tenta pegar os valores atuais dos inputs antes de limpar
+            const valoresAtuais = {};
+            document.querySelectorAll('.input-edit-estoque-tam').forEach(inp => {
+                valoresAtuais[inp.dataset.tam] = inp.value;
+            });
+
+            grid.innerHTML = "";
+            if (checkboxes.length === 0) { container.style.display = "none"; return; }
+            container.style.display = "block";
+            
+            checkboxes.forEach(cb => {
+                let qtd = 0;
+                if (estoqueExistente) qtd = estoqueExistente[cb.value] || 0;
+                else qtd = valoresAtuais[cb.value] || 0;
+
+                const div = document.createElement('div');
+                div.innerHTML = `<span style="font-size: 11px; font-weight: 700;">Qtd ${cb.value}:</span>
+                                 <input type="number" class="input-edit-estoque-tam" data-tam="${cb.value}" value="${qtd}" min="0" style="width:100%; padding: 8px; border-radius: 8px; border: 1px solid #ddd;">`;
+                grid.appendChild(div);
+            });
+        }
+
+        // Carregar Dados
         async function carregarDados() {
             try {
                 const res = await fetch(`${API_URL}/produtos`);
                 produtosGlobais = await res.json();
-                
-                // Stats
                 document.getElementById('stat-produtos').textContent = produtosGlobais.length;
                 document.getElementById('stat-baixo').textContent = produtosGlobais.filter(p => p.estoque > 0 && p.estoque <= 5).length;
                 document.getElementById('stat-esgotados').textContent = produtosGlobais.filter(p => p.estoque <= 0).length;
 
-                // List
                 const lista = document.getElementById('lista-produtos-admin');
                 lista.innerHTML = "";
-
                 produtosGlobais.forEach(p => {
                     const statusEstoque = p.estoque <= 0 ? 'estoque-esgotado' : (p.estoque <= 5 ? 'estoque-baixo' : 'estoque-normal');
                     const labelEstoque = p.estoque <= 0 ? 'Esgotado' : (p.estoque <= 5 ? 'Baixo' : 'Normal');
                     
                     let rawImg = p.imagem_url ? p.imagem_url.trim() : '';
                     let imgPath = rawImg.startsWith('http') ? rawImg : `assets/${rawImg || 'placeholder.png'}`;
+
+                    // Montar texto do estoque por tamanho
+                    const estoqueD = p.estoque_por_tamanho || {};
+                    const breakdown = Object.entries(estoqueD)
+                        .map(([tam, qtd]) => `<span class="tamanho-tag" style="font-size: 10px;">${tam}: <b>${qtd}</b></span>`)
+                        .join(' ');
 
                     const row = document.createElement('tr');
                     row.innerHTML = `
@@ -222,30 +273,28 @@
                         <td>${p.categoria}</td>
                         <td>R$ ${Number(p.preco).toFixed(2)}</td>
                         <td>
-                            <span class="badge-estoque ${statusEstoque}">${p.estoque} (${labelEstoque})</span>
+                            <div class="badge-estoque ${statusEstoque}" style="margin-bottom: 5px; display: inline-block;">Total: ${p.estoque}</div>
+                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">${breakdown}</div>
                         </td>
                         <td>
                             <div class="admin-acoes">
-                                <button class="btn-acao btn-edit" onclick="abrirModal(${p.id})" title="Editar"><i class="fas fa-edit"></i></button>
-                                <button class="btn-acao btn-stock" onclick="aumentarEstoque(${p.id}, ${p.estoque})" title="Aumentar Estoque"><i class="fas fa-plus-circle"></i></button>
+                                <button class="btn-acao btn-edit" onclick="abrirModal(${p.id})" title="Editar Produto e Quantidades"><i class="fas fa-edit"></i></button>
                                 <button class="btn-acao btn-del" onclick="excluirProduto(${p.id})" title="Excluir"><i class="fas fa-trash"></i></button>
                             </div>
                         </td>
                     `;
                     lista.appendChild(row);
                 });
-            } catch (e) {
-                console.error(e);
-            }
+            } catch (e) { console.error(e); }
         }
         carregarDados();
 
-        // Adicionar Produto
+        // Submit Cadastro
         document.getElementById('formProduto').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
             const msgEl = document.getElementById('admin-msg');
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> &nbsp; CADASTRANDO...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> CADASTRANDO...';
             btn.disabled = true;
 
             const formData = new FormData();
@@ -253,24 +302,19 @@
             formData.append('preco', document.getElementById('admin-preco').value);
             formData.append('categoria', document.getElementById('admin-categoria').value);
             formData.append('descricao', document.getElementById('admin-descricao').value);
-            formData.append('estoque', document.getElementById('admin-estoque').value);
             formData.append('eh_novidade', document.getElementById('admin-novidade').checked);
 
-            const tamanhosSelecionados = Array.from(document.querySelectorAll('input[name="tamanho"]:checked'))
-                .map(cb => cb.value)
-                .join(',');
-            formData.append('tamanhos', tamanhosSelecionados);
+            const tamanhos = Array.from(document.querySelectorAll('input[name="tamanho"]:checked')).map(cb => cb.value).join(',');
+            formData.append('tamanhos', tamanhos);
+
+            const estoqueDetalhado = {};
+            document.querySelectorAll('.input-estoque-tam').forEach(inp => {
+                estoqueDetalhado[inp.dataset.tam] = parseInt(inp.value) || 0;
+            });
+            formData.append('estoque_por_tamanho', JSON.stringify(estoqueDetalhado));
 
             const file = document.getElementById('admin-imagem').files[0];
-            if (file) {
-                if (file.size > 50 * 1024 * 1024) { 
-                    alert("A imagem é muito grande. O limite é 50MB.");
-                    btn.innerHTML = '<i class="fas fa-plus"></i> &nbsp; CADASTRAR PRODUTO';
-                    btn.disabled = false;
-                    return;
-                }
-                formData.append('imagem', file);
-            }
+            if (file) formData.append('imagem', file);
 
             try {
                 const res = await fetch(`${API_URL}/produtos/adicionar`, {
@@ -278,85 +322,50 @@
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
                 });
-
                 if (res.ok) {
-                    msgEl.innerText = "Produto cadastrado com sucesso!";
+                    msgEl.innerText = "Cadastrado!";
                     msgEl.style.color = "#27ae60";
                     e.target.reset();
+                    document.getElementById('estoque-detalhado-container').style.display = 'none';
                     carregarDados();
                 } else {
-                    const data = await res.json().catch(() => ({}));
-                    msgEl.innerText = data.mensagem || "Erro ao cadastrar.";
+                    const d = await res.json();
+                    msgEl.innerText = d.mensagem || "Erro.";
                     msgEl.style.color = "#e74c3c";
                 }
-            } catch (err) {
-                console.error(err);
-                msgEl.innerText = "Erro de conexão.";
-            } finally {
-                btn.innerHTML = '<i class="fas fa-plus"></i> &nbsp; CADASTRAR PRODUTO';
-                btn.disabled = false;
-            }
+            } catch (err) { console.error(err); }
+            finally { btn.innerHTML = '<i class="fas fa-plus"></i> CADASTRAR PRODUTO'; btn.disabled = false; }
         });
 
-        // Ações de Gerenciamento
-        async function aumentarEstoque(id, atual) {
-            const adicional = prompt("Quantas unidades deseja adicionar?", "5");
-            if (!adicional || isNaN(adicional)) return;
-
-            try {
-                const res = await fetch(`${API_URL}/produtos/${id}/estoque`, {
-                    method: 'PATCH',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify({ estoque: parseInt(atual) + parseInt(adicional) })
-                });
-
-                if (res.ok) carregarDados();
-                else alert("Erro ao atualizar estoque.");
-            } catch (e) { console.error(e); }
-        }
-
+        // Ações
         async function excluirProduto(id) {
-            if (!confirm("Tem certeza que deseja excluir este produto?")) return;
-
+            if (!confirm("Excluir produto?")) return;
             try {
                 const res = await fetch(`${API_URL}/produtos/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-
                 if (res.ok) carregarDados();
-                else alert("Erro ao excluir produto.");
             } catch (e) { console.error(e); }
         }
 
-        // Modal Editar
         function abrirModal(id) {
             const p = produtosGlobais.find(prod => prod.id === id);
             if (!p) return;
-
             document.getElementById('edit-id').value = p.id;
             document.getElementById('edit-nome').value = p.nome;
             document.getElementById('edit-preco').value = p.preco;
             document.getElementById('edit-categoria').value = p.categoria;
             document.getElementById('edit-descricao').value = p.descricao || '';
             document.getElementById('edit-novidade').checked = p.eh_novidade;
-
-            // Reset e preencher tamanhos
             const checkboxes = document.querySelectorAll('input[name="edit-tamanho"]');
             const tamanhosP = (p.tamanhos || "").split(',');
-            checkboxes.forEach(cb => {
-                cb.checked = tamanhosP.includes(cb.value);
-            });
-
+            checkboxes.forEach(cb => cb.checked = tamanhosP.includes(cb.value));
+            gerarInputsEstoqueEdit(p.estoque_por_tamanho || {});
             document.getElementById('modalEdit').style.display = 'flex';
         }
 
-        function fecharModal() {
-            document.getElementById('modalEdit').style.display = 'none';
-        }
+        function fecharModal() { document.getElementById('modalEdit').style.display = 'none'; }
 
         document.getElementById('formEdit').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -372,14 +381,14 @@
             formData.append('descricao', document.getElementById('edit-descricao').value);
             formData.append('eh_novidade', document.getElementById('edit-novidade').checked);
             
-            // Re-aproveitar o estoque atual (não alterado no modal simplificado)
-            const pOriginal = produtosGlobais.find(prod => prod.id == id);
-            formData.append('estoque', pOriginal.estoque);
+            const tamanhos = Array.from(document.querySelectorAll('input[name="edit-tamanho"]:checked')).map(cb => cb.value).join(',');
+            formData.append('tamanhos', tamanhos);
 
-            const tamanhosSelecionados = Array.from(document.querySelectorAll('input[name="edit-tamanho"]:checked'))
-                .map(cb => cb.value)
-                .join(',');
-            formData.append('tamanhos', tamanhosSelecionados);
+            const estoqueDetalhado = {};
+            document.querySelectorAll('.input-edit-estoque-tam').forEach(inp => {
+                estoqueDetalhado[inp.dataset.tam] = parseInt(inp.value) || 0;
+            });
+            formData.append('estoque_por_tamanho', JSON.stringify(estoqueDetalhado));
 
             const file = document.getElementById('edit-imagem').files[0];
             if (file) formData.append('imagem', file);
@@ -390,18 +399,9 @@
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
                 });
-
-                if (res.ok) {
-                    fecharModal();
-                    carregarDados();
-                } else {
-                    alert("Erro ao salvar alterações.");
-                }
+                if (res.ok) { fecharModal(); carregarDados(); }
             } catch (e) { console.error(e); }
-            finally {
-                btn.innerText = "SALVAR ALTERAÇÕES";
-                btn.disabled = false;
-            }
+            finally { btn.innerText = "SALVAR ALTERAÇÕES"; btn.disabled = false; }
         });
     </script>
 </body>

@@ -13,13 +13,14 @@ router.post('/adicionar', autenticar, async (req, res) => {
     }
 
     try {
-        const produto = await pool.query('SELECT nome, estoque FROM produtos WHERE id = $1', [produto_id]);
+        const produto = await pool.query('SELECT nome, estoque, estoque_por_tamanho FROM produtos WHERE id = $1', [produto_id]);
 
         if (produto.rows.length === 0) {
             return res.status(404).json({ sucesso: false, mensagem: "Produto não encontrado." });
         }
 
-        const estoqueDisponivel = produto.rows[0].estoque;
+        const estoqueDetalhado = produto.rows[0].estoque_por_tamanho || {};
+        const estoqueDisponivelTamanho = parseInt(estoqueDetalhado[tamanho]) || 0;
 
         const noCarrinho = await pool.query(
             'SELECT quantidade FROM carrinho WHERE usuario_id = $1 AND produto_id = $2 AND tamanho = $3',
@@ -28,10 +29,10 @@ router.post('/adicionar', autenticar, async (req, res) => {
 
         const qtdNoCarrinho = noCarrinho.rows.length > 0 ? noCarrinho.rows[0].quantidade : 0;
 
-        if (qtdNoCarrinho + 1 > estoqueDisponivel) {
+        if (qtdNoCarrinho + 1 > estoqueDisponivelTamanho) {
             return res.status(400).json({
                 sucesso: false,
-                mensagem: `Estoque insuficiente. Temos apenas ${estoqueDisponivel} unidade(s) de "${produto.rows[0].nome}".`
+                mensagem: `Estoque insuficiente para o tamanho ${tamanho}. Temos apenas ${estoqueDisponivelTamanho} unidade(s).`
             });
         }
 
@@ -59,7 +60,7 @@ router.post('/adicionar', autenticar, async (req, res) => {
 router.get('/', autenticar, async (req, res) => {
     try {
         const itens = await pool.query(
-            `SELECT c.id, p.nome, p.preco, c.quantidade, p.imagem_url, p.estoque, c.tamanho 
+            `SELECT c.id, p.nome, p.preco, c.quantidade, p.imagem_url, p.estoque, c.tamanho, p.estoque_por_tamanho 
              FROM carrinho c 
              JOIN produtos p ON c.produto_id = p.id 
              WHERE c.usuario_id = $1`,
@@ -72,7 +73,7 @@ router.get('/', autenticar, async (req, res) => {
     }
 });
 
-// ROTA: Finalizar compra (Baixa no estoque + Limpar carrinho)
+// ROTA: Finalizar compra (Baixa no estoque por tamanho + Limpar carrinho)
 router.post('/finalizar', autenticar, async (req, res) => {
     const usuario_id = req.usuario.id;
     const client = await pool.connect();
@@ -80,9 +81,12 @@ router.post('/finalizar', autenticar, async (req, res) => {
     try {
         await client.query('BEGIN');
 
-        // 1. Buscar itens do carrinho
+        // 1. Buscar itens do carrinho com informações do produto
         const cartItems = await client.query(
-            'SELECT c.produto_id, c.quantidade, p.nome, p.estoque FROM carrinho c JOIN produtos p ON c.produto_id = p.id WHERE c.usuario_id = $1',
+            `SELECT c.produto_id, c.quantidade, c.tamanho, p.nome, p.estoque_por_tamanho 
+             FROM carrinho c 
+             JOIN produtos p ON c.produto_id = p.id 
+             WHERE c.usuario_id = $1`,
             [usuario_id]
         );
 
@@ -92,13 +96,20 @@ router.post('/finalizar', autenticar, async (req, res) => {
 
         // 2. Verificar estoque e dar baixa
         for (const item of cartItems.rows) {
-            if (item.quantidade > item.estoque) {
-                throw new Error(`Estoque insuficiente para o produto: ${item.nome}`);
+            const estoqueAtual = item.estoque_por_tamanho || {};
+            const qtdAtual = parseInt(estoqueAtual[item.tamanho]) || 0;
+
+            if (item.quantidade > qtdAtual) {
+                throw new Error(`Estoque insuficiente para "${item.nome}" no tamanho ${item.tamanho}.`);
             }
 
+            // Atualizar o JSONB diminuindo a quantidade e também o total
             await client.query(
-                'UPDATE produtos SET estoque = estoque - $1 WHERE id = $2',
-                [item.quantidade, item.produto_id]
+                `UPDATE produtos 
+                 SET estoque_por_tamanho = jsonb_set(estoque_por_tamanho, ARRAY[$1], (COALESCE((estoque_por_tamanho->>$1)::int, 0) - $2)::text::jsonb),
+                     estoque = estoque - $2
+                 WHERE id = $3`,
+                [item.tamanho, item.quantidade, item.produto_id]
             );
         }
 

@@ -70,39 +70,42 @@ function exibirProdutos(listaParaExibir) {
         card.setAttribute('data-id', idProduto);
         if (!emEstoque) card.classList.add('esgotado');
 
-        // Lógica de tamanhos (interativos)
+        // Lógica de tamanhos
         let tamanhosHtml = '';
         if (produto.tamanhos) {
+            const estoqueD = produto.estoque_por_tamanho || {};
             const tags = produto.tamanhos.split(',').map(t => {
                 const tam = t.trim();
                 if (!tam) return '';
-                return `<span class="tamanho-tag selectable" onclick="selecionarTamanho(this, '${tam}')">${tam}</span>`;
+                const qtdTam = parseInt(estoqueD[tam]) || 0;
+                if (qtdTam <= 0) return `<span class="tamanho-tag" style="opacity: 0.3; cursor: not-allowed;" title="Esgotado">${tam}</span>`;
+                return `<span class="tamanho-tag selectable" onclick="event.stopPropagation(); selecionarTamanho(this, '${tam}')">${tam}</span>`;
             }).join('');
             tamanhosHtml = `<div class="produto-tamanhos">${tags}</div>`;
         }
 
         card.innerHTML = `
-            <div class="img-wrapper">
+            <div class="img-wrapper" onclick="abrirModalDetalhes(${idProduto})">
                 ${produto.eh_novidade ? '<div class="badge-novidade">Novo</div>' : ''}
                 ${!emEstoque ? '<div class="badge-esgotado">Esgotado</div>' : ''}
                 <img src="${imgPath}" alt="${produto.nome}"
                      class="produto-img ${!emEstoque ? 'img-esgotado' : ''}"
                      onerror="this.src='https://via.placeholder.com/400x600?text=Pronto+Look';">
             </div>
-            <div class="produto-info">
+            <div class="produto-info" onclick="abrirModalDetalhes(${idProduto})">
                 <span class="produto-categoria">${produto.categoria || 'Coleção'}</span>
                 <h3 class="produto-nome">${produto.nome}</h3>
                 ${tamanhosHtml}
                 <div class="produto-footer">
                     <span class="preco">R$ ${Number(produto.preco).toFixed(2).replace('.', ',')}</span>
                     <button class="btn-comprar ${!emEstoque ? 'btn-desabilitado' : ''}"
-                            ${emEstoque ? `onclick="adicionarAoCarrinho(event, ${idProduto})"` : ''}
+                            ${emEstoque ? `onclick="event.stopPropagation(); adicionarAoCarrinho(event, ${idProduto})"` : ''}
                             ${!emEstoque ? 'disabled' : ''}
                             title="${emEstoque ? 'Adicionar ao carrinho' : 'Produto esgotado'}">
                         <i class="fas ${emEstoque ? 'fa-plus' : 'fa-times'}"></i>
                     </button>
                 </div>
-                ${emEstoque && produto.estoque <= 5 ? `<p class="alerta-estoque">Apenas ${produto.estoque} em estoque!</p>` : ''}
+                ${emEstoque && produto.estoque <= 5 ? `<p class="alerta-estoque">Apenas ${produto.estoque} no total!</p>` : ''}
             </div>
         `;
 
@@ -110,19 +113,73 @@ function exibirProdutos(listaParaExibir) {
     });
 }
 
+// 2.1 MODAL DETALHES
+function abrirModalDetalhes(id) {
+    const p = produtosDoBanco.find(prod => prod.id === id);
+    if (!p) return;
+
+    let rawImg = p.imagem_url ? p.imagem_url.trim() : '';
+    let imgPath = rawImg.startsWith('http') ? rawImg : `assets/${rawImg || 'placeholder.png'}`;
+
+    document.getElementById('detalhe-img').src = imgPath;
+    document.getElementById('detalhe-nome').textContent = p.nome;
+    document.getElementById('detalhe-categoria').textContent = p.categoria;
+    document.getElementById('detalhe-preco').textContent = `R$ ${Number(p.preco).toFixed(2).replace('.', ',')}`;
+    document.getElementById('detalhe-descricao').textContent = p.descricao || "Sem descrição disponível.";
+
+    const containerTam = document.getElementById('detalhe-tamanhos');
+    containerTam.innerHTML = "";
+
+    if (p.tamanhos) {
+        const estoqueD = p.estoque_por_tamanho || {};
+        p.tamanhos.split(',').forEach(t => {
+            const tam = t.trim();
+            if (!tam) return;
+            const qtdTam = parseInt(estoqueD[tam]) || 0;
+            
+            const span = document.createElement('span');
+            span.className = 'tamanho-tag' + (qtdTam > 0 ? ' selectable' : '');
+            span.textContent = tam;
+            if (qtdTam <= 0) {
+                span.style.opacity = "0.3";
+                span.title = "Esgotado";
+            } else {
+                span.onclick = () => selecionarTamanho(span, tam);
+            }
+            containerTam.appendChild(span);
+        });
+    }
+
+    const btnAdd = document.getElementById('btn-adicionar-detalhe');
+    btnAdd.onclick = (e) => adicionarAoCarrinho(e, p.id, true);
+    btnAdd.disabled = (p.estoque <= 0);
+    btnAdd.innerHTML = p.estoque > 0 ? '<i class="fas fa-shopping-bag"></i> &nbsp; ADICIONAR AO CARRINHO' : 'PRODUTO ESGOTADO';
+
+    const modal = document.getElementById('modal-detalhes');
+    modal.setAttribute('data-id', p.id);
+    modal.removeAttribute('data-tamanho-selecionado');
+    modal.style.display = 'flex';
+}
+
+function fecharModalDetalhes() {
+    document.getElementById('modal-detalhes').style.display = 'none';
+}
+
+// Fecha modal ao clicar fora
+window.onclick = function(event) {
+    const modalD = document.getElementById('modal-detalhes');
+    if (event.target == modalD) fecharModalDetalhes();
+}
+
 // Função global para selecionar tamanho
 window.selecionarTamanho = function(elemento, tamanho) {
-    const card = elemento.closest('.produto-card');
-    if (!card) return;
+    const container = elemento.parentElement;
+    const cardOuModal = elemento.closest('.produto-card') || elemento.closest('.modal-admin');
+    if (!cardOuModal) return;
     
-    // Remove seleção anterior no mesmo card
-    card.querySelectorAll('.tamanho-tag').forEach(tag => tag.classList.remove('selected'));
-    
-    // Adiciona seleção ao clicado
+    container.querySelectorAll('.tamanho-tag').forEach(tag => tag.classList.remove('selected'));
     elemento.classList.add('selected');
-    
-    // Guarda o tamanho selecionado no atributo do card
-    card.setAttribute('data-tamanho-selecionado', tamanho);
+    cardOuModal.setAttribute('data-tamanho-selecionado', tamanho);
 };
 
 // 3. FILTRAR CATEGORIAS
@@ -146,7 +203,6 @@ function filtrarPorCategoria(categoria) {
         exibirProdutos(filtrados);
     }
 
-    // Rolar para a seção de produtos
     const secaoProdutos = document.getElementById('titulo-pagina');
     if (secaoProdutos) {
         secaoProdutos.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -173,12 +229,12 @@ function configurarBusca() {
     });
 }
 
-// 5. ACESSO RESTRITO (redireciona para login do admin)
+// 5. ACESSO RESTRITO
 function verificarAdmin() {
     window.location.href = "admin_login.html";
 }
 
-// 6. FORMULÁRIOS (LOGIN E CADASTRO)
+// 6. FORMULÁRIOS
 function configurarFormularios() {
     const formLogin = document.getElementById('formLogin');
     if (formLogin) {
@@ -188,7 +244,6 @@ function configurarFormularios() {
             const senha = document.getElementById('senha').value;
             const msg = document.getElementById('mensagem');
             const btn = formLogin.querySelector('button[type="submit"]');
-
             btn.innerText = "ENTRANDO...";
             btn.disabled = true;
 
@@ -199,23 +254,16 @@ function configurarFormularios() {
                     body: JSON.stringify({ email, senha })
                 });
                 const data = await res.json();
-
                 if (res.ok) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('usuarioLogado', JSON.stringify(data.usuario));
                     window.location.href = "index.html";
                 } else {
-                    if (msg) {
-                        msg.innerText = data.mensagem;
-                        msg.style.color = "#e74c3c";
-                    }
+                    if (msg) { msg.innerText = data.mensagem; msg.style.color = "#e74c3c"; }
                 }
             } catch (err) {
                 console.error(err);
-                if (msg) {
-                    msg.innerText = "Erro ao conectar ao servidor.";
-                    msg.style.color = "#e74c3c";
-                }
+                if (msg) { msg.innerText = "Erro ao conectar."; msg.style.color = "#e74c3c"; }
             } finally {
                 btn.innerText = "ENTRAR";
                 btn.disabled = false;
@@ -235,14 +283,11 @@ function configurarFormularios() {
             const btn = formCadastro.querySelector('button[type="submit"]');
 
             if (senha.length < 6) {
-                if (msg) {
-                    msg.innerText = "A senha deve ter no mínimo 6 caracteres.";
-                    msg.style.color = "#e74c3c";
-                }
+                if (msg) { msg.innerText = "Mínimo 6 caracteres."; msg.style.color = "#e74c3c"; }
                 return;
             }
 
-            btn.innerText = "CRIANDO CONTA...";
+            btn.innerText = "CRIANDO...";
             btn.disabled = true;
 
             try {
@@ -250,34 +295,19 @@ function configurarFormularios() {
                 formData.append('nome', nome);
                 formData.append('email', email);
                 formData.append('senha', senha);
-                if (foto && foto.files[0]) {
-                    formData.append('imagem', foto.files[0]);
-                }
+                if (foto && foto.files[0]) formData.append('imagem', foto.files[0]);
 
-                const res = await fetch(`${API_URL}/usuarios/cadastro`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const res = await fetch(`${API_URL}/usuarios/cadastro`, { method: 'POST', body: formData });
                 const data = await res.json();
 
                 if (res.ok) {
-                    if (msg) {
-                        msg.innerText = data.mensagem;
-                        msg.style.color = "#27ae60";
-                    }
+                    if (msg) { msg.innerText = data.mensagem; msg.style.color = "#27ae60"; }
                     setTimeout(() => { window.location.href = "login.html"; }, 1500);
                 } else {
-                    if (msg) {
-                        msg.innerText = data.mensagem;
-                        msg.style.color = "#e74c3c";
-                    }
+                    if (msg) { msg.innerText = data.mensagem; msg.style.color = "#e74c3c"; }
                 }
             } catch (err) {
                 console.error(err);
-                if (msg) {
-                    msg.innerText = "Erro ao conectar ao servidor.";
-                    msg.style.color = "#e74c3c";
-                }
             } finally {
                 btn.innerText = "CRIAR MINHA CONTA";
                 btn.disabled = false;
@@ -286,7 +316,7 @@ function configurarFormularios() {
     }
 }
 
-// 7. GERENCIAR LOGIN (HEADER)
+// 7. GERENCIAR LOGIN
 function gerenciarLogin() {
     const usuarioRaw = localStorage.getItem('usuarioLogado');
     const token = localStorage.getItem('token');
@@ -303,7 +333,6 @@ function gerenciarLogin() {
             logged.classList.remove('user-logged-hidden');
         }
 
-        // Show user photo in header
         const fotoHeader = document.getElementById('user-foto-header');
         if (fotoHeader && user.foto_url) {
             fotoHeader.src = user.foto_url;
@@ -330,14 +359,14 @@ function gerenciarLogin() {
     }
 }
 
-// 8. ADICIONAR AO CARRINHO (COM JWT + TOAST + TAMANHO)
-async function adicionarAoCarrinho(event, produto_id) {
+// 8. ADICIONAR AO CARRINHO
+async function adicionarAoCarrinho(event, produto_id, isFromModal = false) {
     const token = localStorage.getItem('token');
     if (!token) { window.location.href = "login.html"; return; }
 
     const btn = event.currentTarget;
-    const card = btn.closest('.produto-card');
-    const tamanho = card.getAttribute('data-tamanho-selecionado');
+    const container = isFromModal ? document.getElementById('modal-detalhes') : btn.closest('.produto-card');
+    const tamanho = container.getAttribute('data-tamanho-selecionado');
 
     if (!tamanho) {
         mostrarToast("Por favor, escolha um tamanho primeiro!", "aviso");
@@ -346,7 +375,7 @@ async function adicionarAoCarrinho(event, produto_id) {
 
     btn.disabled = true;
     const originalContent = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.innerHTML = isFromModal ? 'PROCESSANDO...' : '<i class="fas fa-spinner fa-spin"></i>';
 
     try {
         const res = await fetch(`${API_URL}/carrinho/adicionar`, {
@@ -361,6 +390,7 @@ async function adicionarAoCarrinho(event, produto_id) {
         if (res.ok) {
             atualizarVisualContador();
             mostrarToast(`Adicionado ao carrinho (${tamanho})!`, "sucesso");
+            if (isFromModal) fecharModalDetalhes();
         } else {
             mostrarToast(data.mensagem || "Erro ao adicionar.", "aviso");
         }
@@ -373,16 +403,14 @@ async function adicionarAoCarrinho(event, produto_id) {
     }
 }
 
-// 9. CONTADOR DO CARRINHO
+// 9. CONTADOR
 async function atualizarVisualContador() {
     const contador = document.querySelector('.cart-count');
     const token = localStorage.getItem('token');
     if (!contador || !token) return;
 
     try {
-        const res = await fetch(`${API_URL}/carrinho`, {
-            headers: getAuthHeaders()
-        });
+        const res = await fetch(`${API_URL}/carrinho`, { headers: getAuthHeaders() });
         if (res.ok) {
             const itens = await res.json();
             const total = itens.reduce((sum, item) => sum + item.quantidade, 0);

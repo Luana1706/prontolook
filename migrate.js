@@ -21,6 +21,13 @@ async function migrate() {
         `);
         console.log("Coluna 'tamanhos' verificada/adicionada.");
 
+        // Adicionar coluna para estoque detalhado por tamanho
+        await pool.query(`
+            ALTER TABLE produtos 
+            ADD COLUMN IF NOT EXISTS estoque_por_tamanho JSONB DEFAULT '{}';
+        `);
+        console.log("Coluna 'estoque_por_tamanho' verificada/adicionada.");
+
         // Adicionar coluna tamanho no carrinho
         await pool.query(`
             ALTER TABLE carrinho 

@@ -99,6 +99,39 @@
 
     <div id="toast-container" class="toast-container"></div>
 
+    <!-- Modal Detalhes do Produto -->
+    <div id="modal-detalhes" class="modal-admin">
+        <div class="modal-content detalhe-content">
+            <span class="modal-close" onclick="fecharModalDetalhes()">&times;</span>
+            <div class="detalhe-grid">
+                <div class="detalhe-img-area">
+                    <img id="detalhe-img" src="" alt="Produto">
+                </div>
+                <div class="detalhe-info-area">
+                    <span id="detalhe-categoria" class="produto-categoria">Categoria</span>
+                    <h2 id="detalhe-nome" class="titulo-secao" style="text-align:left; margin: 10px 0;">Nome do Produto</h2>
+                    <p id="detalhe-preco" class="preco" style="font-size: 24px; margin-bottom: 20px;">R$ 0,00</p>
+                    
+                    <div class="detalhe-descricao-box">
+                        <h4>Descrição</h4>
+                        <p id="detalhe-descricao">Descrição detalhada do produto aqui...</p>
+                    </div>
+
+                    <div class="input-group" style="margin-top: 25px;">
+                        <label>Escolha seu Tamanho:</label>
+                        <div id="detalhe-tamanhos" class="produto-tamanhos" style="font-size: 1rem; gap: 10px;">
+                            <!-- Gerado via JS -->
+                        </div>
+                    </div>
+
+                    <button id="btn-adicionar-detalhe" class="btn-cadastrar btn-rosa" style="margin-top: 30px;">
+                        <i class="fas fa-shopping-bag"></i> &nbsp; ADICIONAR AO CARRINHO
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer id="footer-section" class="site-footer">
         <div class="footer-container">
             <div class="footer-col">
