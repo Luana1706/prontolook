@@ -58,8 +58,12 @@ router.post('/adicionar', autenticar, apenasAdmin, upload.single('imagem'), asyn
 
         res.status(201).json({ sucesso: true, produto: novoProduto.rows[0] });
     } catch (err) {
-        console.error('Erro ao salvar produto:', err.message);
-        res.status(500).json({ sucesso: false, mensagem: "Erro ao salvar no banco." });
+        console.error('Erro ao salvar produto:', err);
+        res.status(500).json({ 
+            sucesso: false, 
+            mensagem: "Erro ao salvar no banco.",
+            detalhe: err.message // Isso ajudará a ver o erro real no console do navegador
+        });
     }
 });
 
