@@ -411,10 +411,19 @@ async function atualizarVisualContador() {
 
     try {
         const res = await fetch(`${API_URL}/carrinho`, { headers: getAuthHeaders() });
+        
+        if (res.status === 403 || res.status === 401) {
+            console.warn("Sessão inválida detectada no contador. Limpando...");
+            sair(); // Força logout se o token for rejeitado
+            return;
+        }
+
         if (res.ok) {
             const itens = await res.json();
-            const total = itens.reduce((sum, item) => sum + item.quantidade, 0);
-            contador.innerText = total;
+            if (Array.isArray(itens)) {
+                const total = itens.reduce((sum, item) => sum + item.quantidade, 0);
+                contador.innerText = total;
+            }
         }
     } catch (err) { console.error(err); }
 }

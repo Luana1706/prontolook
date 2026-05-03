@@ -9,6 +9,14 @@ function getAuthHeaders() {
     return headers;
 }
 
+// Função para sair (copiada do script.js para consistência)
+function sair() {
+    localStorage.removeItem('usuarioLogado');
+    localStorage.removeItem('token');
+    localStorage.removeItem('totalCarrinho');
+    window.location.href = "index.html";
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     carregarItensCarrinho();
 });
@@ -27,9 +35,18 @@ async function carregarItensCarrinho() {
         const resposta = await fetch(`${API_URL}/carrinho`, {
             headers: getAuthHeaders()
         });
+
+        // Tratar erro de autorização/sessão expirada
+        if (resposta.status === 403 || resposta.status === 401) {
+            console.warn("Sessão expirada no carrinho.");
+            sair();
+            return;
+        }
+
         const itens = await resposta.json();
 
-        if (!itens || itens.length === 0) {
+        // Garantir que itens seja um array antes de usar forEach
+        if (!itens || !Array.isArray(itens) || itens.length === 0) {
             container.innerHTML = `
                 <div class="carrinho-vazio">
                     <i class="fas fa-shopping-bag"></i>
@@ -37,7 +54,7 @@ async function carregarItensCarrinho() {
                     <p style="color: #ccc; font-size: 13px; margin-top: 5px;">Explore nossa coleção e encontre peças incríveis.</p>
                     <a href="index.html" class="btn-cadastrar btn-continuar">EXPLORAR COLEÇÃO</a>
                 </div>`;
-            totalElemento.innerText = "0,00";
+            if (totalElemento) totalElemento.innerText = "0,00";
             return;
         }
 
@@ -62,6 +79,7 @@ async function carregarItensCarrinho() {
                         <img src="${imgPath}" class="img-carrinho" alt="${item.nome}" onerror="this.src='assets/placeholder.png';">
                         <div class="info">
                             <h4>${item.nome}</h4>
+                            <p>Tamanho: <b>${item.tamanho || 'N/A'}</b></p>
                             <p>R$ ${Number(item.preco).toFixed(2).replace('.', ',')} /un</p>
                             <div class="qtd-seletor">
                                 <span>Qtd:</span>
@@ -88,7 +106,7 @@ async function carregarItensCarrinho() {
             `;
         });
 
-        totalElemento.innerText = totalGeral.toFixed(2).replace('.', ',');
+        if (totalElemento) totalElemento.innerText = totalGeral.toFixed(2).replace('.', ',');
 
         const btnFinalizar = document.querySelector('.btn-finalizar-compra');
         if (btnFinalizar) {
