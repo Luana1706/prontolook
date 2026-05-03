@@ -69,8 +69,16 @@ function exibirProdutos(listaParaExibir) {
         card.className = 'produto-card';
         if (!emEstoque) card.classList.add('esgotado');
 
+        // Lógica de tamanhos
+        let tamanhosHtml = '';
+        if (produto.tamanhos) {
+            const tags = produto.tamanhos.split(',').map(t => `<span class="tamanho-tag">${t.trim()}</span>`).join('');
+            tamanhosHtml = `<div class="produto-tamanhos">${tags}</div>`;
+        }
+
         card.innerHTML = `
             <div class="img-wrapper">
+                ${produto.eh_novidade ? '<div class="badge-novidade">Novo</div>' : ''}
                 ${!emEstoque ? '<div class="badge-esgotado">Esgotado</div>' : ''}
                 <img src="${imgPath}" alt="${produto.nome}"
                      class="produto-img ${!emEstoque ? 'img-esgotado' : ''}"
@@ -79,6 +87,7 @@ function exibirProdutos(listaParaExibir) {
             <div class="produto-info">
                 <span class="produto-categoria">${produto.categoria || 'Coleção'}</span>
                 <h3 class="produto-nome">${produto.nome}</h3>
+                ${tamanhosHtml}
                 <div class="produto-footer">
                     <span class="preco">R$ ${Number(produto.preco).toFixed(2).replace('.', ',')}</span>
                     <button class="btn-comprar ${!emEstoque ? 'btn-desabilitado' : ''}"
@@ -107,6 +116,9 @@ function filtrarPorCategoria(categoria) {
 
     if (categoria === 'todos') {
         exibirProdutos(produtosDoBanco);
+    } else if (categoria === 'novidades') {
+        const filtrados = produtosDoBanco.filter(p => p.eh_novidade === true);
+        exibirProdutos(filtrados);
     } else {
         const filtrados = produtosDoBanco.filter(p =>
             (p.categoria || "").toLowerCase() === categoria.toLowerCase()

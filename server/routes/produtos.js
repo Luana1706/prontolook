@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
 
 // ROTA: Adicionar novo produto (apenas admin autenticado)
 router.post('/adicionar', autenticar, apenasAdmin, upload.single('imagem'), async (req, res) => {
-    const { nome, descricao, preco, categoria, estoque } = req.body;
+    const { nome, descricao, preco, categoria, estoque, eh_novidade, tamanhos } = req.body;
 
     if (!nome || !preco) {
         return res.status(400).json({ sucesso: false, mensagem: "Nome e preço são obrigatórios." });
@@ -41,10 +41,11 @@ router.post('/adicionar', autenticar, apenasAdmin, upload.single('imagem'), asyn
     try {
         const imagem_url = req.file ? req.file.path : 'placeholder.png';
         const estoqueFinal = parseInt(estoque) || 0;
+        const novidadeBool = eh_novidade === 'true' || eh_novidade === true;
 
         const novoProduto = await pool.query(
-            'INSERT INTO produtos (nome, descricao, preco, categoria, estoque, imagem_url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-            [nome, descricao, preco, categoria, estoqueFinal, imagem_url]
+            'INSERT INTO produtos (nome, descricao, preco, categoria, estoque, imagem_url, eh_novidade, tamanhos) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+            [nome, descricao, preco, categoria, estoqueFinal, imagem_url, novidadeBool, tamanhos || '']
         );
 
         res.status(201).json({ sucesso: true, produto: novoProduto.rows[0] });

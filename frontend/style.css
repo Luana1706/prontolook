@@ -1521,6 +1521,71 @@ body {
     gap: 20px;
 }
 
+.input-group-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.admin-tamanhos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 10px;
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.admin-tamanhos-grid label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+/* Badge Novidade */
+.badge-novidade {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--rosa-principal);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    z-index: 2;
+    text-transform: uppercase;
+}
+
+/* Tamanhos no card */
+.produto-tamanhos {
+    font-size: 0.8rem;
+    color: #777;
+    margin-bottom: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.tamanho-tag {
+    display: inline-block;
+    background: #eee;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-weight: 500;
+}
+
 .admin-select {
     width: 100%;
     padding: 15px 20px;

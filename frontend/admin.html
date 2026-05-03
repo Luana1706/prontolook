@@ -69,6 +69,28 @@
                         <p class="admin-hint">JPG, PNG — Upload automático via Cloudinary (Máx 50MB)</p>
                     </div>
                 </div>
+
+                <div class="admin-grid-2">
+                    <div class="input-group-checkbox">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="admin-novidade"> Marcar como Novidade
+                        </label>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Tamanhos Disponíveis</label>
+                    <div class="admin-tamanhos-grid">
+                        <label><input type="checkbox" name="tamanho" value="PP"> PP</label>
+                        <label><input type="checkbox" name="tamanho" value="P"> P</label>
+                        <label><input type="checkbox" name="tamanho" value="M"> M</label>
+                        <label><input type="checkbox" name="tamanho" value="G"> G</label>
+                        <label><input type="checkbox" name="tamanho" value="GG"> GG</label>
+                        <label><input type="checkbox" name="tamanho" value="XG"> XG</label>
+                        <label><input type="checkbox" name="tamanho" value="Plus Size"> Plus Size</label>
+                    </div>
+                </div>
+
                 <button type="submit" class="btn-cadastrar btn-rosa">
                     <i class="fas fa-plus"></i> &nbsp; CADASTRAR PRODUTO
                 </button>
@@ -114,6 +136,12 @@
             formData.append('categoria', document.getElementById('admin-categoria').value);
             formData.append('descricao', document.getElementById('admin-descricao').value);
             formData.append('estoque', document.getElementById('admin-estoque').value);
+            formData.append('eh_novidade', document.getElementById('admin-novidade').checked);
+
+            const tamanhosSelecionados = Array.from(document.querySelectorAll('input[name="tamanho"]:checked'))
+                .map(cb => cb.value)
+                .join(',');
+            formData.append('tamanhos', tamanhosSelecionados);
 
             const file = document.getElementById('admin-imagem').files[0];
             if (file) {
