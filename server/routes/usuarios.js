@@ -15,12 +15,14 @@ const storageUsuarios = new CloudinaryStorage({
     cloudinary: cloudinary,
     params: {
         folder: 'usuarios_prontolook',
-        allowed_formats: ['jpg', 'png', 'jpeg'],
         transformation: [{ width: 300, height: 300, crop: 'fill' }],
     },
 });
 
-const uploadFoto = multer({ storage: storageUsuarios });
+const uploadFoto = multer({ 
+    storage: storageUsuarios,
+    limits: { fileSize: 10 * 1024 * 1024 } // Limite de 10MB
+});
 
 // ROTA: Cadastro com hash de senha, validação e foto opcional
 router.post('/cadastro', uploadFoto.single('imagem'), async (req, res) => {

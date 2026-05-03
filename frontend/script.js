@@ -216,16 +216,31 @@ function configurarBusca() {
 
     campoBusca.addEventListener('input', (e) => {
         const termo = e.target.value.toLowerCase().trim();
+        const lista = document.getElementById('lista-produtos');
+
         if (!termo) {
             exibirProdutos(produtosDoBanco);
             return;
         }
+
         const filtrados = produtosDoBanco.filter(p =>
             p.nome.toLowerCase().includes(termo) ||
             (p.descricao || '').toLowerCase().includes(termo) ||
             (p.categoria || '').toLowerCase().includes(termo)
         );
-        exibirProdutos(filtrados);
+
+        if (filtrados.length === 0) {
+            if (lista) {
+                lista.innerHTML = `
+                    <div class="vitrine-vazia">
+                        <i class="fas fa-search" style="font-size: 40px; color: #ddd; margin-bottom: 15px; display: block;"></i>
+                        <p>Nenhum produto encontrado para "<b>${termo}</b>"</p>
+                        <p style="font-size: 13px; color: #aaa;">Tente pesquisar por outros termos ou categorias.</p>
+                    </div>`;
+            }
+        } else {
+            exibirProdutos(filtrados);
+        }
     });
 }
 
