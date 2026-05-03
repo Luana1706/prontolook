@@ -40,8 +40,8 @@ const authLimiter = rateLimit({
 });
 
 // Middlewares de body-parser com limites aumentados
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Configuração de Arquivos Estáticos (Frontend)
 const frontendPath = path.resolve(__dirname, 'frontend');

@@ -16,7 +16,7 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // Limite de 10MB
+  limits: { fileSize: 50 * 1024 * 1024 } // Limite de 50MB
 });
 
 // ROTA: Buscar todos os produtos (pública)

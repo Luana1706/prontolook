@@ -66,7 +66,7 @@
                     <div class="input-group">
                         <label>Imagem do Produto</label>
                         <input type="file" id="admin-imagem" accept="image/*">
-                        <p class="admin-hint">JPG, PNG — Upload automático via Cloudinary (Máx 10MB)</p>
+                        <p class="admin-hint">JPG, PNG — Upload automático via Cloudinary (Máx 50MB)</p>
                     </div>
                 </div>
                 <button type="submit" class="btn-cadastrar btn-rosa">
@@ -117,8 +117,8 @@
 
             const file = document.getElementById('admin-imagem').files[0];
             if (file) {
-                if (file.size > 10 * 1024 * 1024) { // 10MB
-                    alert("A imagem é muito grande. O limite é 10MB.");
+                if (file.size > 50 * 1024 * 1024) { // 50MB
+                    alert("A imagem é muito grande. O limite é 50MB.");
                     btn.innerHTML = '<i class="fas fa-plus"></i> &nbsp; CADASTRAR PRODUTO';
                     btn.disabled = false;
                     return;
