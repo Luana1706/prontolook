@@ -66,7 +66,7 @@
                     <div class="input-group">
                         <label>Imagem do Produto</label>
                         <input type="file" id="admin-imagem" accept="image/*">
-                        <p class="admin-hint">JPG, PNG — Upload automático via Cloudinary</p>
+                        <p class="admin-hint">JPG, PNG — Upload automático via Cloudinary (Máx 10MB)</p>
                     </div>
                 </div>
                 <button type="submit" class="btn-cadastrar btn-rosa">
@@ -104,6 +104,7 @@
         document.getElementById('formProduto').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
+            const msgEl = document.getElementById('admin-msg');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> &nbsp; CADASTRANDO...';
             btn.disabled = true;
 
@@ -115,7 +116,15 @@
             formData.append('estoque', document.getElementById('admin-estoque').value);
 
             const file = document.getElementById('admin-imagem').files[0];
-            if (file) formData.append('imagem', file);
+            if (file) {
+                if (file.size > 10 * 1024 * 1024) { // 10MB
+                    alert("A imagem é muito grande. O limite é 10MB.");
+                    btn.innerHTML = '<i class="fas fa-plus"></i> &nbsp; CADASTRAR PRODUTO';
+                    btn.disabled = false;
+                    return;
+                }
+                formData.append('imagem', file);
+            }
 
             try {
                 const res = await fetch(`${API_URL}/produtos/adicionar`, {
@@ -124,8 +133,7 @@
                     body: formData
                 });
 
-                const data = await res.json();
-                const msgEl = document.getElementById('admin-msg');
+                const data = await res.json().catch(() => ({}));
 
                 if (res.ok) {
                     msgEl.innerText = "Produto cadastrado com sucesso!";
@@ -133,13 +141,16 @@
                     e.target.reset();
                     carregarStats();
                 } else {
-                    msgEl.innerText = data.mensagem || "Erro ao cadastrar.";
+                    const msgErro = data.mensagem || data.erro || "Erro ao cadastrar produto.";
+                    msgEl.innerText = msgErro;
                     msgEl.style.color = "#e74c3c";
+                    if (res.status === 413) {
+                        msgEl.innerText = "Erro: A imagem ou os dados são muito grandes para o servidor.";
+                    }
                 }
             } catch (err) {
                 console.error(err);
-                const msgEl = document.getElementById('admin-msg');
-                msgEl.innerText = "Erro ao cadastrar.";
+                msgEl.innerText = "Erro de conexão com o servidor.";
                 msgEl.style.color = "#e74c3c";
             } finally {
                 btn.innerHTML = '<i class="fas fa-plus"></i> &nbsp; CADASTRAR PRODUTO';
