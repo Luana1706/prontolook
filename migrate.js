@@ -35,6 +35,13 @@ async function migrate() {
         `);
         console.log("Coluna 'tamanho' no carrinho verificada/adicionada.");
 
+        // Garantir que a coluna role existe em usuarios
+        await pool.query(`
+            ALTER TABLE usuarios 
+            ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';
+        `);
+        console.log("Coluna 'role' em usuarios verificada/adicionada.");
+
         console.log("Migração concluída com sucesso!");
         process.exit(0);
     } catch (err) {

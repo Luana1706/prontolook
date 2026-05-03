@@ -322,6 +322,7 @@
                     headers: { 'Authorization': `Bearer ${token}` },
                     body: formData
                 });
+
                 if (res.ok) {
                     msgEl.innerText = "Cadastrado!";
                     msgEl.style.color = "#27ae60";
@@ -329,12 +330,19 @@
                     document.getElementById('estoque-detalhado-container').style.display = 'none';
                     carregarDados();
                 } else {
-                    const d = await res.json();
-                    msgEl.innerText = d.mensagem || "Erro.";
+                    const d = await res.json().catch(() => ({ mensagem: "Erro desconhecido." }));
+                    if (res.status === 403) {
+                        msgEl.innerText = "Erro 403: Acesso negado. Tente sair e entrar novamente no painel.";
+                    } else {
+                        msgEl.innerText = d.mensagem || "Erro ao cadastrar.";
+                    }
                     msgEl.style.color = "#e74c3c";
                 }
-            } catch (err) { console.error(err); }
-            finally { btn.innerHTML = '<i class="fas fa-plus"></i> CADASTRAR PRODUTO'; btn.disabled = false; }
+            } catch (err) {
+                console.error(err);
+                msgEl.innerText = "Erro de conexão com o servidor.";
+                msgEl.style.color = "#e74c3c";
+            } finally { btn.innerHTML = '<i class="fas fa-plus"></i> CADASTRAR PRODUTO'; btn.disabled = false; }
         });
 
         // Ações

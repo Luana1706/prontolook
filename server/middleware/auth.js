@@ -19,7 +19,8 @@ function autenticar(req, res, next) {
 }
 
 function apenasAdmin(req, res, next) {
-    if (!req.usuario || req.usuario.role !== 'admin') {
+    if (!req.usuario || (req.usuario.role || '').toLowerCase() !== 'admin') {
+        console.warn(`Acesso negado para o usuário ${req.usuario ? req.usuario.nome : 'desconhecido'}. Role: ${req.usuario ? req.usuario.role : 'N/A'}`);
         return res.status(403).json({ sucesso: false, mensagem: "Acesso restrito a administradores." });
     }
     next();
