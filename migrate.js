@@ -21,6 +21,13 @@ async function migrate() {
         `);
         console.log("Coluna 'tamanhos' verificada/adicionada.");
 
+        // Adicionar coluna tamanho no carrinho
+        await pool.query(`
+            ALTER TABLE carrinho 
+            ADD COLUMN IF NOT EXISTS tamanho TEXT DEFAULT '';
+        `);
+        console.log("Coluna 'tamanho' no carrinho verificada/adicionada.");
+
         console.log("Migração concluída com sucesso!");
         process.exit(0);
     } catch (err) {

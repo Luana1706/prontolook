@@ -5,8 +5,12 @@ const { autenticar } = require('../middleware/auth');
 
 // ROTA: Adicionar ao carrinho com verificação de estoque (requer autenticação)
 router.post('/adicionar', autenticar, async (req, res) => {
-    const { produto_id } = req.body;
+    const { produto_id, tamanho } = req.body;
     const usuario_id = req.usuario.id;
+
+    if (!tamanho) {
+        return res.status(400).json({ sucesso: false, mensagem: "Por favor, selecione um tamanho." });
+    }
 
     try {
         const produto = await pool.query('SELECT nome, estoque FROM produtos WHERE id = $1', [produto_id]);
@@ -18,8 +22,8 @@ router.post('/adicionar', autenticar, async (req, res) => {
         const estoqueDisponivel = produto.rows[0].estoque;
 
         const noCarrinho = await pool.query(
-            'SELECT quantidade FROM carrinho WHERE usuario_id = $1 AND produto_id = $2',
-            [usuario_id, produto_id]
+            'SELECT quantidade FROM carrinho WHERE usuario_id = $1 AND produto_id = $2 AND tamanho = $3',
+            [usuario_id, produto_id, tamanho]
         );
 
         const qtdNoCarrinho = noCarrinho.rows.length > 0 ? noCarrinho.rows[0].quantidade : 0;
@@ -33,13 +37,13 @@ router.post('/adicionar', autenticar, async (req, res) => {
 
         if (noCarrinho.rows.length > 0) {
             await pool.query(
-                'UPDATE carrinho SET quantidade = quantidade + 1 WHERE usuario_id = $1 AND produto_id = $2',
-                [usuario_id, produto_id]
+                'UPDATE carrinho SET quantidade = quantidade + 1 WHERE usuario_id = $1 AND produto_id = $2 AND tamanho = $3',
+                [usuario_id, produto_id, tamanho]
             );
         } else {
             await pool.query(
-                'INSERT INTO carrinho (usuario_id, produto_id, quantidade) VALUES ($1, $2, 1)',
-                [usuario_id, produto_id]
+                'INSERT INTO carrinho (usuario_id, produto_id, quantidade, tamanho) VALUES ($1, $2, 1, $3)',
+                [usuario_id, produto_id, tamanho]
             );
         }
 
@@ -55,7 +59,7 @@ router.post('/adicionar', autenticar, async (req, res) => {
 router.get('/', autenticar, async (req, res) => {
     try {
         const itens = await pool.query(
-            `SELECT c.id, p.nome, p.preco, c.quantidade, p.imagem_url, p.estoque 
+            `SELECT c.id, p.nome, p.preco, c.quantidade, p.imagem_url, p.estoque, c.tamanho 
              FROM carrinho c 
              JOIN produtos p ON c.produto_id = p.id 
              WHERE c.usuario_id = $1`,

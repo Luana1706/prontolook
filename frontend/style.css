@@ -1584,6 +1584,25 @@ body {
     padding: 2px 6px;
     border-radius: 3px;
     font-weight: 500;
+    transition: var(--transition);
+}
+
+.tamanho-tag.selectable {
+    cursor: pointer;
+    border: 1.5px solid transparent;
+}
+
+.tamanho-tag.selectable:hover {
+    background: var(--rosa-claro);
+    color: var(--rosa-principal);
+    border-color: var(--rosa-principal);
+}
+
+.tamanho-tag.selected {
+    background: var(--rosa-principal);
+    color: white;
+    border-color: var(--rosa-principal);
+    box-shadow: 0 2px 8px rgba(194, 105, 139, 0.3);
 }
 
 .admin-select {

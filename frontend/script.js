@@ -67,12 +67,16 @@ function exibirProdutos(listaParaExibir) {
 
         const card = document.createElement('div');
         card.className = 'produto-card';
+        card.dataset.id = idProduto;
         if (!emEstoque) card.classList.add('esgotado');
 
-        // Lógica de tamanhos
+        // Lógica de tamanhos (agora interativos)
         let tamanhosHtml = '';
         if (produto.tamanhos) {
-            const tags = produto.tamanhos.split(',').map(t => `<span class="tamanho-tag">${t.trim()}</span>`).join('');
+            const tags = produto.tamanhos.split(',').map(t => {
+                const tam = t.trim();
+                return `<span class="tamanho-tag selectable" onclick="selecionarTamanho(this, '${tam}')">${tam}</span>`;
+            }).join('');
             tamanhosHtml = `<div class="produto-tamanhos">${tags}</div>`;
         }
 
@@ -105,6 +109,17 @@ function exibirProdutos(listaParaExibir) {
     });
 }
 
+// Função para selecionar tamanho no card
+function selecionarTamanho(elemento, tamanho) {
+    const card = elemento.closest('.produto-card');
+    // Remove seleção anterior no mesmo card
+    card.querySelectorAll('.tamanho-tag').forEach(tag => tag.classList.remove('selected'));
+    // Adiciona seleção ao clicado
+    elemento.classList.add('selected');
+    // Guarda o tamanho selecionado no dataset do card
+    card.dataset.tamanhoSelecionado = tamanho;
+}
+
 // 3. FILTRAR CATEGORIAS
 function filtrarPorCategoria(categoria) {
     document.querySelectorAll('.cat-item').forEach(btn => {
@@ -124,6 +139,12 @@ function filtrarPorCategoria(categoria) {
             (p.categoria || "").toLowerCase() === categoria.toLowerCase()
         );
         exibirProdutos(filtrados);
+    }
+
+    // Rolar para a seção de produtos
+    const secaoProdutos = document.getElementById('titulo-pagina');
+    if (secaoProdutos) {
+        secaoProdutos.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
 
