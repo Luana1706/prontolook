@@ -32,6 +32,8 @@ router.get('/', async (req, res) => {
 
 // ROTA: Adicionar novo produto (apenas admin autenticado)
 router.post('/adicionar', autenticar, apenasAdmin, upload.single('imagem'), async (req, res) => {
+    console.log("Recebida requisição para adicionar produto:", req.body.nome);
+    
     const { nome, descricao, preco, categoria, eh_novidade, tamanhos, estoque_por_tamanho } = req.body;
 
     if (!nome || !preco) {
@@ -39,30 +41,44 @@ router.post('/adicionar', autenticar, apenasAdmin, upload.single('imagem'), asyn
     }
 
     try {
-        const imagem_url = req.file ? req.file.path : 'placeholder.png';
+        // Tenta pegar a URL da imagem do Cloudinary, se falhar usa um placeholder
+        let imagem_url = 'placeholder.png';
+        if (req.file && req.file.path) {
+            imagem_url = req.file.path;
+        }
+
         const novidadeBool = eh_novidade === 'true' || eh_novidade === true;
         
-        // Processar estoque por tamanho (espera-se um objeto JSON ou string JSON)
         let estoqueDetalhado = {};
         try {
             estoqueDetalhado = typeof estoque_por_tamanho === 'string' ? JSON.parse(estoque_por_tamanho) : (estoque_por_tamanho || {});
-        } catch (e) { console.error("Erro ao parsear estoque detalhado", e); }
+        } catch (e) { 
+            console.error("Erro no parse do estoque:", e); 
+            estoqueDetalhado = {};
+        }
 
-        // Calcular estoque total
         const estoqueTotal = Object.values(estoqueDetalhado).reduce((acc, val) => acc + (parseInt(val) || 0), 0);
 
-        const novoProduto = await pool.query(
-            'INSERT INTO produtos (nome, descricao, preco, categoria, estoque, imagem_url, eh_novidade, tamanhos, estoque_por_tamanho) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-            [nome, descricao, preco, categoria, estoqueTotal, imagem_url, novidadeBool, tamanhos || '', estoqueDetalhado]
-        );
+        console.log("Tentando inserir no banco...");
+        const query = `
+            INSERT INTO produtos (nome, descricao, preco, categoria, estoque, imagem_url, eh_novidade, tamanhos, estoque_por_tamanho) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
+            RETURNING *`;
+        
+        const values = [nome, descricao, preco, categoria, estoqueTotal, imagem_url, novidadeBool, tamanhos || '', estoqueDetalhado];
 
+        const novoProduto = await pool.query(query, values);
+
+        console.log("Produto inserido com sucesso!");
         res.status(201).json({ sucesso: true, produto: novoProduto.rows[0] });
+
     } catch (err) {
-        console.error('Erro ao salvar produto:', err);
+        console.error('ERRO CRÍTICO NA ROTA ADICIONAR:', err);
         res.status(500).json({ 
             sucesso: false, 
-            mensagem: "Erro ao salvar no banco.",
-            detalhe: err.message // Isso ajudará a ver o erro real no console do navegador
+            mensagem: "Falha ao salvar produto no banco.",
+            detalhe: err.message,
+            codigo: err.code // Código de erro do Postgres (ex: 42703 para coluna faltando)
         });
     }
 });

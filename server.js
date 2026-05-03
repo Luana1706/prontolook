@@ -67,6 +67,17 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
+// Middleware Global de Tratamento de Erros
+app.use((err, req, res, next) => {
+    console.error('ERRO GLOBAL:', err);
+    res.status(500).json({
+        sucesso: false,
+        mensagem: "Erro interno no servidor.",
+        detalhe: err.message,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
+});
+
 // Porta para Local e Vercel
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
