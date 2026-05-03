@@ -67,14 +67,15 @@ function exibirProdutos(listaParaExibir) {
 
         const card = document.createElement('div');
         card.className = 'produto-card';
-        card.dataset.id = idProduto;
+        card.setAttribute('data-id', idProduto);
         if (!emEstoque) card.classList.add('esgotado');
 
-        // Lógica de tamanhos (agora interativos)
+        // Lógica de tamanhos (interativos)
         let tamanhosHtml = '';
         if (produto.tamanhos) {
             const tags = produto.tamanhos.split(',').map(t => {
                 const tam = t.trim();
+                if (!tam) return '';
                 return `<span class="tamanho-tag selectable" onclick="selecionarTamanho(this, '${tam}')">${tam}</span>`;
             }).join('');
             tamanhosHtml = `<div class="produto-tamanhos">${tags}</div>`;
@@ -109,16 +110,20 @@ function exibirProdutos(listaParaExibir) {
     });
 }
 
-// Função para selecionar tamanho no card
-function selecionarTamanho(elemento, tamanho) {
+// Função global para selecionar tamanho
+window.selecionarTamanho = function(elemento, tamanho) {
     const card = elemento.closest('.produto-card');
+    if (!card) return;
+    
     // Remove seleção anterior no mesmo card
     card.querySelectorAll('.tamanho-tag').forEach(tag => tag.classList.remove('selected'));
+    
     // Adiciona seleção ao clicado
     elemento.classList.add('selected');
-    // Guarda o tamanho selecionado no dataset do card
-    card.dataset.tamanhoSelecionado = tamanho;
-}
+    
+    // Guarda o tamanho selecionado no atributo do card
+    card.setAttribute('data-tamanho-selecionado', tamanho);
+};
 
 // 3. FILTRAR CATEGORIAS
 function filtrarPorCategoria(categoria) {
@@ -325,34 +330,46 @@ function gerenciarLogin() {
     }
 }
 
-// 8. ADICIONAR AO CARRINHO (COM JWT + TOAST)
+// 8. ADICIONAR AO CARRINHO (COM JWT + TOAST + TAMANHO)
 async function adicionarAoCarrinho(event, produto_id) {
     const token = localStorage.getItem('token');
     if (!token) { window.location.href = "login.html"; return; }
 
     const btn = event.currentTarget;
+    const card = btn.closest('.produto-card');
+    const tamanho = card.getAttribute('data-tamanho-selecionado');
+
+    if (!tamanho) {
+        mostrarToast("Por favor, escolha um tamanho primeiro!", "aviso");
+        return;
+    }
+
     btn.disabled = true;
+    const originalContent = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
     try {
         const res = await fetch(`${API_URL}/carrinho/adicionar`, {
             method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ produto_id })
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({ produto_id, tamanho })
         });
         const data = await res.json();
         if (res.ok) {
             atualizarVisualContador();
-            mostrarToast("Adicionado ao carrinho!", "sucesso");
+            mostrarToast(`Adicionado ao carrinho (${tamanho})!`, "sucesso");
         } else {
-            mostrarToast(data.mensagem, "aviso");
+            mostrarToast(data.mensagem || "Erro ao adicionar.", "aviso");
         }
     } catch (err) {
         console.error(err);
         mostrarToast("Erro ao adicionar.", "erro");
     } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-plus"></i>';
+        btn.innerHTML = originalContent;
     }
 }
 

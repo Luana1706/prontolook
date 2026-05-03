@@ -96,12 +96,89 @@
                 </button>
             </form>
             <div id="admin-msg" class="admin-mensagem"></div>
+
+            <h3 class="admin-secao-titulo">Gerenciar Produtos</h3>
+            <div class="admin-tabela-container">
+                <table class="admin-tabela">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Categoria</th>
+                            <th>Preço</th>
+                            <th>Estoque</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lista-produtos-admin">
+                        <!-- Preenchido via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Editar Produto -->
+    <div id="modalEdit" class="modal-admin">
+        <div class="modal-content">
+            <span class="modal-close" onclick="fecharModal()">&times;</span>
+            <h3 class="admin-secao-titulo">Editar Produto</h3>
+            <form id="formEdit" class="form-admin">
+                <input type="hidden" id="edit-id">
+                <div class="input-group">
+                    <label>Nome do Produto</label>
+                    <input type="text" id="edit-nome" required>
+                </div>
+                <div class="admin-grid-2">
+                    <div class="input-group">
+                        <label>Preço (R$)</label>
+                        <input type="number" step="0.01" id="edit-preco" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Categoria</label>
+                        <select id="edit-categoria" class="admin-select">
+                            <option value="vestidos">Vestidos</option>
+                            <option value="blusas">Blusas</option>
+                            <option value="conjuntos">Conjuntos</option>
+                            <option value="acessorios">Acessórios</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Descrição</label>
+                    <textarea id="edit-descricao" class="admin-textarea"></textarea>
+                </div>
+                <div class="admin-grid-2">
+                    <div class="input-group">
+                        <label>Nova Imagem (Opcional)</label>
+                        <input type="file" id="edit-imagem" accept="image/*">
+                    </div>
+                    <div class="input-group-checkbox" style="margin-top: 30px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="edit-novidade"> Novidade
+                        </label>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Tamanhos</label>
+                    <div class="admin-tamanhos-grid">
+                        <label><input type="checkbox" name="edit-tamanho" value="PP"> PP</label>
+                        <label><input type="checkbox" name="edit-tamanho" value="P"> P</label>
+                        <label><input type="checkbox" name="edit-tamanho" value="M"> M</label>
+                        <label><input type="checkbox" name="edit-tamanho" value="G"> G</label>
+                        <label><input type="checkbox" name="edit-tamanho" value="GG"> GG</label>
+                        <label><input type="checkbox" name="edit-tamanho" value="XG"> XG</label>
+                        <label><input type="checkbox" name="edit-tamanho" value="Plus Size"> Plus Size</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn-cadastrar btn-rosa">SALVAR ALTERAÇÕES</button>
+            </form>
         </div>
     </div>
 
     <script>
         const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
         const token = localStorage.getItem('token');
+        let produtosGlobais = [];
 
         if (!usuarioLogado || !token || usuarioLogado.role !== 'admin') {
             window.location.href = "admin_login.html";
@@ -109,20 +186,61 @@
 
         const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
 
-        // Load stats
-        async function carregarStats() {
+        // Load stats and list
+        async function carregarDados() {
             try {
                 const res = await fetch(`${API_URL}/produtos`);
-                const produtos = await res.json();
-                document.getElementById('stat-produtos').textContent = produtos.length;
-                document.getElementById('stat-baixo').textContent = produtos.filter(p => p.estoque > 0 && p.estoque <= 5).length;
-                document.getElementById('stat-esgotados').textContent = produtos.filter(p => p.estoque <= 0).length;
+                produtosGlobais = await res.json();
+                
+                // Stats
+                document.getElementById('stat-produtos').textContent = produtosGlobais.length;
+                document.getElementById('stat-baixo').textContent = produtosGlobais.filter(p => p.estoque > 0 && p.estoque <= 5).length;
+                document.getElementById('stat-esgotados').textContent = produtosGlobais.filter(p => p.estoque <= 0).length;
+
+                // List
+                const lista = document.getElementById('lista-produtos-admin');
+                lista.innerHTML = "";
+
+                produtosGlobais.forEach(p => {
+                    const statusEstoque = p.estoque <= 0 ? 'estoque-esgotado' : (p.estoque <= 5 ? 'estoque-baixo' : 'estoque-normal');
+                    const labelEstoque = p.estoque <= 0 ? 'Esgotado' : (p.estoque <= 5 ? 'Baixo' : 'Normal');
+                    
+                    let rawImg = p.imagem_url ? p.imagem_url.trim() : '';
+                    let imgPath = rawImg.startsWith('http') ? rawImg : `assets/${rawImg || 'placeholder.png'}`;
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <img src="${imgPath}" class="admin-prod-img">
+                                <div>
+                                    <div class="admin-prod-nome">${p.nome}</div>
+                                    <div class="admin-prod-info">ID: ${p.id}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${p.categoria}</td>
+                        <td>R$ ${Number(p.preco).toFixed(2)}</td>
+                        <td>
+                            <span class="badge-estoque ${statusEstoque}">${p.estoque} (${labelEstoque})</span>
+                        </td>
+                        <td>
+                            <div class="admin-acoes">
+                                <button class="btn-acao btn-edit" onclick="abrirModal(${p.id})" title="Editar"><i class="fas fa-edit"></i></button>
+                                <button class="btn-acao btn-stock" onclick="aumentarEstoque(${p.id}, ${p.estoque})" title="Aumentar Estoque"><i class="fas fa-plus-circle"></i></button>
+                                <button class="btn-acao btn-del" onclick="excluirProduto(${p.id})" title="Excluir"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </td>
+                    `;
+                    lista.appendChild(row);
+                });
             } catch (e) {
                 console.error(e);
             }
         }
-        carregarStats();
+        carregarDados();
 
+        // Adicionar Produto
         document.getElementById('formProduto').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button');
@@ -145,7 +263,7 @@
 
             const file = document.getElementById('admin-imagem').files[0];
             if (file) {
-                if (file.size > 50 * 1024 * 1024) { // 50MB
+                if (file.size > 50 * 1024 * 1024) { 
                     alert("A imagem é muito grande. O limite é 50MB.");
                     btn.innerHTML = '<i class="fas fa-plus"></i> &nbsp; CADASTRAR PRODUTO';
                     btn.disabled = false;
@@ -161,27 +279,127 @@
                     body: formData
                 });
 
-                const data = await res.json().catch(() => ({}));
-
                 if (res.ok) {
                     msgEl.innerText = "Produto cadastrado com sucesso!";
                     msgEl.style.color = "#27ae60";
                     e.target.reset();
-                    carregarStats();
+                    carregarDados();
                 } else {
-                    const msgErro = data.mensagem || data.erro || "Erro ao cadastrar produto.";
-                    msgEl.innerText = msgErro;
+                    const data = await res.json().catch(() => ({}));
+                    msgEl.innerText = data.mensagem || "Erro ao cadastrar.";
                     msgEl.style.color = "#e74c3c";
-                    if (res.status === 413) {
-                        msgEl.innerText = "Erro: A imagem ou os dados são muito grandes para o servidor.";
-                    }
                 }
             } catch (err) {
                 console.error(err);
-                msgEl.innerText = "Erro de conexão com o servidor.";
-                msgEl.style.color = "#e74c3c";
+                msgEl.innerText = "Erro de conexão.";
             } finally {
                 btn.innerHTML = '<i class="fas fa-plus"></i> &nbsp; CADASTRAR PRODUTO';
+                btn.disabled = false;
+            }
+        });
+
+        // Ações de Gerenciamento
+        async function aumentarEstoque(id, atual) {
+            const adicional = prompt("Quantas unidades deseja adicionar?", "5");
+            if (!adicional || isNaN(adicional)) return;
+
+            try {
+                const res = await fetch(`${API_URL}/produtos/${id}/estoque`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ estoque: parseInt(atual) + parseInt(adicional) })
+                });
+
+                if (res.ok) carregarDados();
+                else alert("Erro ao atualizar estoque.");
+            } catch (e) { console.error(e); }
+        }
+
+        async function excluirProduto(id) {
+            if (!confirm("Tem certeza que deseja excluir este produto?")) return;
+
+            try {
+                const res = await fetch(`${API_URL}/produtos/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.ok) carregarDados();
+                else alert("Erro ao excluir produto.");
+            } catch (e) { console.error(e); }
+        }
+
+        // Modal Editar
+        function abrirModal(id) {
+            const p = produtosGlobais.find(prod => prod.id === id);
+            if (!p) return;
+
+            document.getElementById('edit-id').value = p.id;
+            document.getElementById('edit-nome').value = p.nome;
+            document.getElementById('edit-preco').value = p.preco;
+            document.getElementById('edit-categoria').value = p.categoria;
+            document.getElementById('edit-descricao').value = p.descricao || '';
+            document.getElementById('edit-novidade').checked = p.eh_novidade;
+
+            // Reset e preencher tamanhos
+            const checkboxes = document.querySelectorAll('input[name="edit-tamanho"]');
+            const tamanhosP = (p.tamanhos || "").split(',');
+            checkboxes.forEach(cb => {
+                cb.checked = tamanhosP.includes(cb.value);
+            });
+
+            document.getElementById('modalEdit').style.display = 'flex';
+        }
+
+        function fecharModal() {
+            document.getElementById('modalEdit').style.display = 'none';
+        }
+
+        document.getElementById('formEdit').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const btn = e.target.querySelector('button');
+            btn.innerText = "SALVANDO...";
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('nome', document.getElementById('edit-nome').value);
+            formData.append('preco', document.getElementById('edit-preco').value);
+            formData.append('categoria', document.getElementById('edit-categoria').value);
+            formData.append('descricao', document.getElementById('edit-descricao').value);
+            formData.append('eh_novidade', document.getElementById('edit-novidade').checked);
+            
+            // Re-aproveitar o estoque atual (não alterado no modal simplificado)
+            const pOriginal = produtosGlobais.find(prod => prod.id == id);
+            formData.append('estoque', pOriginal.estoque);
+
+            const tamanhosSelecionados = Array.from(document.querySelectorAll('input[name="edit-tamanho"]:checked'))
+                .map(cb => cb.value)
+                .join(',');
+            formData.append('tamanhos', tamanhosSelecionados);
+
+            const file = document.getElementById('edit-imagem').files[0];
+            if (file) formData.append('imagem', file);
+
+            try {
+                const res = await fetch(`${API_URL}/produtos/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (res.ok) {
+                    fecharModal();
+                    carregarDados();
+                } else {
+                    alert("Erro ao salvar alterações.");
+                }
+            } catch (e) { console.error(e); }
+            finally {
+                btn.innerText = "SALVAR ALTERAÇÕES";
                 btn.disabled = false;
             }
         });
