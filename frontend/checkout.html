@@ -64,11 +64,18 @@
                 <span>Total:</span>
                 <span id="total-final">R$ 0,00</span>
             </div>
-            <button class="btn-cadastrar" onclick="confirmarPagamento()">CONFIRMAR PAGAMENTO</button>
+            <button id="btn-confirmar" class="btn-cadastrar" onclick="confirmarPagamento()">CONFIRMAR PAGAMENTO</button>
         </div>
     </div>
 
     <script>
+        const API_URL = window.location.hostname === 'localhost' ? 'http://localhost:3000' : '';
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+            window.location.href = "login.html";
+        }
+
         function selectMethod(method, element) {
             document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('active'));
             element.classList.add('active');
@@ -79,15 +86,42 @@
         document.getElementById('subtotal').innerText = `R$ ${totalCarrinho}`;
         document.getElementById('total-final').innerText = `R$ ${totalCarrinho}`;
 
-        function confirmarPagamento() {
+        async function confirmarPagamento() {
             const metodSelecionado = document.querySelector('.payment-method.active');
             if (!metodSelecionado) {
                 alert("Selecione um método de pagamento.");
                 return;
             }
-            alert("Pedido confirmado! Em breve você receberá a confirmação por e-mail.");
-            localStorage.removeItem('totalCarrinho');
-            window.location.href = "index.html";
+
+            const btn = document.getElementById('btn-confirmar');
+            btn.innerText = "PROCESSANDO...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_URL}/carrinho/finalizar`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    alert("Pedido confirmado! O estoque foi atualizado e seu carrinho está vazio.");
+                    localStorage.removeItem('totalCarrinho');
+                    window.location.href = "index.html";
+                } else {
+                    alert("Erro ao finalizar pedido: " + data.mensagem);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Erro de conexão com o servidor.");
+            } finally {
+                btn.innerText = "CONFIRMAR PAGAMENTO";
+                btn.disabled = false;
+            }
         }
     </script>
 </body>

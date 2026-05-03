@@ -72,6 +72,51 @@ router.get('/', autenticar, async (req, res) => {
     }
 });
 
+// ROTA: Finalizar compra (Baixa no estoque + Limpar carrinho)
+router.post('/finalizar', autenticar, async (req, res) => {
+    const usuario_id = req.usuario.id;
+    const client = await pool.connect();
+
+    try {
+        await client.query('BEGIN');
+
+        // 1. Buscar itens do carrinho
+        const cartItems = await client.query(
+            'SELECT c.produto_id, c.quantidade, p.nome, p.estoque FROM carrinho c JOIN produtos p ON c.produto_id = p.id WHERE c.usuario_id = $1',
+            [usuario_id]
+        );
+
+        if (cartItems.rows.length === 0) {
+            throw new Error("Carrinho vazio.");
+        }
+
+        // 2. Verificar estoque e dar baixa
+        for (const item of cartItems.rows) {
+            if (item.quantidade > item.estoque) {
+                throw new Error(`Estoque insuficiente para o produto: ${item.nome}`);
+            }
+
+            await client.query(
+                'UPDATE produtos SET estoque = estoque - $1 WHERE id = $2',
+                [item.quantidade, item.produto_id]
+            );
+        }
+
+        // 3. Limpar carrinho
+        await client.query('DELETE FROM carrinho WHERE usuario_id = $1', [usuario_id]);
+
+        await client.query('COMMIT');
+        res.json({ sucesso: true, mensagem: "Compra finalizada com sucesso!" });
+
+    } catch (err) {
+        await client.query('ROLLBACK');
+        console.error('Erro no checkout:', err.message);
+        res.status(400).json({ sucesso: false, mensagem: err.message });
+    } finally {
+        client.release();
+    }
+});
+
 // ROTA: Atualizar quantidade no carrinho (requer autenticação)
 router.put('/atualizar/:id', autenticar, async (req, res) => {
     const { quantidade } = req.body;
