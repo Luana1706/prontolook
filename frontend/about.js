@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Abrir modal
     btn.onclick = () => {
-        modal.style.display = 'block';
+        modal.style.display = 'flex';
     }
 
     // Fechar no X
