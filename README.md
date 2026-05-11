@@ -77,6 +77,8 @@ prontolook/
     ├── style.css                # Estilos
     ├── script.js                # JavaScript principal
     ├── carrinho_script.js       # Script do carrinho
+    ├── about.css                # Estilos específicos do modal informativo
+    ├── about.js                 # Lógica do modal informativo
     └── assets/                  # Imagens estáticas
 ```
 
