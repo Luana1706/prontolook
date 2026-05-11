@@ -167,8 +167,44 @@
         <i class="fab fa-whatsapp"></i>
     </a>
 
+    <!-- Botão flutuante e Modal Sobre o Projeto -->
+    <button id="openAboutBtn" class="btn-sobre-projeto">
+        <i class="fas fa-info-circle"></i> Sobre o Projeto
+    </button>
+
+    <div id="aboutModal" class="modal-sobre">
+        <div class="modal-content-sobre">
+            <span class="close-about">&times;</span>
+            <div class="modal-header-sobre">
+                <h2>Pronto Look</h2>
+                <p class="subtitle">Gestão & Vitrine Digital</p>
+            </div>
+            <div class="modal-body-sobre">
+                <section class="intro">
+                    <p>O site <strong>Pronto Look</strong> é uma plataforma de gestão e vitrine digital que une um catálogo elegante à praticidade de um painel intuitivo.</p>
+                    <p>O objetivo é oferecer uma experiência de compra fluida para o cliente e uma gestão sem complicações para o lojista.</p>
+                </section>
+
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <i class="fas fa-store"></i>
+                        <h3>Perfil Lojista</h3>
+                        <p>Gestão de vitrine em tempo real: cadastre looks, atualize preços e gerencie estoques através de um painel intuitivo.</p>
+                    </div>
+                    <div class="feature-card">
+                        <i class="fas fa-mobile-alt"></i>
+                        <h3>O Cliente</h3>
+                        <p>Uma vitrine limpa e atraente onde o cliente seleciona o tamanho exato e é direcionado para finalizar o pedido com facilidade.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="about.css">
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="script.js"></script>
+    <script src="about.js"></script>
 
     <script>
         var swiper = new Swiper(".mySwiper", {
